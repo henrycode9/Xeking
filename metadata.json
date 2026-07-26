@@ -1,0 +1,6 @@
+{
+  "name": "Xadrez Realtime 3D",
+  "description": "Xadrez Multiplayer em Tempo Real ultra-moderno com visualização 3D/2D, QR Code instantâneo e design estilo Apple.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
