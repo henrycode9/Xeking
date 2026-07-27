@@ -80,7 +80,7 @@ export const ChessBoard2D: React.FC = () => {
   ];
 
   return (
-    <div className="h-full max-h-full aspect-square mx-auto flex flex-col justify-center items-center transition-all duration-300 pro-card p-2 sm:p-3 min-h-0 overflow-hidden shadow-xl relative">
+    <div className="w-full max-w-[98vw] sm:max-w-xl aspect-square mx-auto flex flex-col justify-center items-center transition-all duration-300 pro-card p-1 sm:p-2.5 min-h-0 overflow-hidden shadow-2xl relative">
       
       {/* Pawn Promotion Overlay Modal */}
       {pendingPromotion && (
@@ -114,7 +114,7 @@ export const ChessBoard2D: React.FC = () => {
         </div>
       )}
 
-      <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-1 rounded-2xl overflow-hidden p-1.5 bg-slate-200 border border-slate-300 shadow-inner">
+      <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-0.5 rounded-2xl overflow-hidden p-1 bg-slate-200 border border-slate-300 shadow-inner">
         {displayedRanks.map((rank, rIdx) =>
           displayedFiles.map((file, fIdx) => {
             const square = `${file}${rank}` as Square;
@@ -138,16 +138,16 @@ export const ChessBoard2D: React.FC = () => {
                 onClick={() => selectSquare(square)}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => handleDrop(e, square)}
-                className={`relative flex items-center justify-center transition-all duration-150 aspect-square rounded-xl select-none cursor-pointer group font-pro ${getTileStyle(isDark, isSelected, isLastMove)}`}
+                className={`relative flex items-center justify-center transition-all duration-150 aspect-square rounded-lg select-none cursor-pointer group font-pro overflow-hidden ${getTileStyle(isDark, isSelected, isLastMove)}`}
               >
                 {/* File/Rank Label */}
                 {fIdx === 0 && (
-                  <span className="absolute top-1 left-1.5 text-[10px] font-mono font-bold text-slate-500 pointer-events-none">
+                  <span className={`absolute top-0.5 left-1 text-[9px] sm:text-[10px] font-mono font-bold leading-none pointer-events-none z-20 opacity-75 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
                     {rank}
                   </span>
                 )}
                 {rIdx === 7 && (
-                  <span className="absolute bottom-1 right-1.5 text-[10px] font-mono font-bold text-slate-500 pointer-events-none">
+                  <span className={`absolute bottom-0.5 right-1 text-[9px] sm:text-[10px] font-mono font-bold leading-none pointer-events-none z-20 opacity-75 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
                     {file}
                   </span>
                 )}
@@ -158,8 +158,8 @@ export const ChessBoard2D: React.FC = () => {
                     <div
                       className={`rounded-full transition-transform duration-200 group-hover:scale-125 ${
                         piece
-                          ? 'w-full h-full border-4 border-emerald-500 rounded-xl animate-pulse'
-                          : 'w-4 h-4 bg-emerald-500 shadow-md shadow-emerald-500/40'
+                          ? 'w-full h-full border-4 border-emerald-500 rounded-lg animate-pulse'
+                          : 'w-3.5 h-3.5 sm:w-4 sm:h-4 bg-emerald-500 shadow-md shadow-emerald-500/40'
                       }`}
                     />
                   </div>
@@ -170,7 +170,7 @@ export const ChessBoard2D: React.FC = () => {
                   <span
                     draggable={!!piece && piece.color === turn}
                     onDragStart={(e) => handleDragStart(e, square)}
-                    className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-none transition-transform duration-150 ${
+                    className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-none flex items-center justify-center transition-transform duration-150 z-10 ${
                       isSelected ? 'scale-110 -translate-y-0.5' : 'group-hover:scale-105'
                     } ${getPieceColorClass(piece!.color)} ${piece?.color === turn ? 'cursor-grab active:cursor-grabbing' : ''}`}
                   >

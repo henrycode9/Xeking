@@ -5,6 +5,7 @@ import { ChessBoard2D } from './components/ChessBoard2D';
 import { GameControlsPanel } from './components/GameControlsPanel';
 import { QRCodeModal } from './components/QRCodeModal';
 import { GameOverModal } from './components/GameOverModal';
+import { MatchStartOverlay } from './components/MatchStartOverlay';
 
 export default function App() {
   const {
@@ -29,28 +30,28 @@ export default function App() {
   }, []);
 
   return (
-    <div className="h-screen w-screen max-h-screen max-w-screen overflow-hidden selection:bg-slate-900 selection:text-white flex flex-col p-2 sm:p-3 antialiased theme-pro-light">
+    <div className="min-h-screen lg:h-screen w-screen max-w-screen overflow-y-auto lg:overflow-hidden selection:bg-slate-900 selection:text-white flex flex-col p-1.5 sm:p-3 antialiased theme-pro-light">
       
       {/* Main Container */}
-      <div className="relative z-10 w-full h-full flex flex-col min-h-0 overflow-hidden">
+      <div className="relative z-10 w-full h-full flex flex-col min-h-0">
         
         {/* Compact Header */}
         <HeaderUI
           onOpenQRModal={() => setIsQRModalOpen(true)}
         />
 
-        {/* Board & Control Grid (Flexible 100vh fit) */}
-        <main className="w-full max-w-7xl mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 min-h-0 overflow-hidden py-1 items-stretch">
+        {/* Board & Control Grid */}
+        <main className="w-full max-w-7xl mx-auto flex-1 flex flex-col lg:grid lg:grid-cols-12 gap-3 min-h-0 py-1 items-stretch">
           
-          {/* Left Column: Board Canvas (3D or 2D) */}
-          <div className="lg:col-span-8 xl:col-span-8 w-full h-full flex flex-col items-center justify-center relative min-h-0 overflow-hidden">
+          {/* Left Column: Board Canvas */}
+          <div className="lg:col-span-8 xl:col-span-8 w-full flex flex-col items-center justify-center relative shrink-0 min-h-0">
             
             {/* Quick QR Invite Banner when waiting */}
             {gameMode === 'multiplayer' && !isOpponentConnected && (
               <div className="w-full mb-1.5 p-2 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-between text-xs animate-fadeIn shrink-0">
                 <div className="flex items-center space-x-2">
                   <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
-                  <span className="font-semibold text-xs text-slate-800">A aguardar por outro jogador... Aponte a câmara para o QR Code para entrar!</span>
+                  <span className="font-semibold text-[11px] sm:text-xs text-slate-800">A aguardar jogador... Envie o QR Code ao seu oponente!</span>
                 </div>
                 <button
                   onClick={() => setIsQRModalOpen(true)}
@@ -73,22 +74,23 @@ export default function App() {
               ))}
             </div>
 
-            {/* Board View Viewport - Traditional 2D Board */}
-            <div className="w-full h-full flex-1 flex items-center justify-center min-h-0 overflow-hidden">
+            {/* Board View Viewport */}
+            <div className="w-full flex items-center justify-center min-h-0 py-1">
               <ChessBoard2D />
             </div>
           </div>
 
           {/* Right Column: Game Controls Panel */}
-          <div className="lg:col-span-4 xl:col-span-4 w-full h-full min-h-0 overflow-hidden">
+          <div className="lg:col-span-4 xl:col-span-4 w-full flex-1 lg:h-full min-h-0">
             <GameControlsPanel />
           </div>
         </main>
       </div>
 
-      {/* Modals */}
+      {/* Modals & Overlays */}
       <QRCodeModal isOpen={isQRModalOpen} onClose={() => setIsQRModalOpen(false)} />
       <GameOverModal />
+      <MatchStartOverlay />
     </div>
   );
 }
