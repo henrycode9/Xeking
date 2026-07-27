@@ -191,6 +191,15 @@ Fornece uma análise em PORTUGUÊS com a seguinte estrutura em formato JSON estr
       io.to(roomId).emit("rematch-started", room);
     });
 
+    socket.on("resign", ({ roomId, resigningColor }: { roomId: string; resigningColor: 'w' | 'b' }) => {
+      const room = rooms.get(roomId);
+      const winner = resigningColor === 'w' ? 'b' : 'w';
+      if (room) {
+        room.status = 'checkmate';
+      }
+      io.to(roomId).emit("game-resigned", { winner, resigningColor });
+    });
+
     socket.on("game-over", ({ roomId, status, winner }: { roomId: string; status: string; winner?: 'w' | 'b' | 'draw' }) => {
       const room = rooms.get(roomId);
       if (room) {

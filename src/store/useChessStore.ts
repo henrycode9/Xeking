@@ -53,6 +53,7 @@ interface ChessStore {
   sendReaction: (emoji: string) => void;
   setGameMode: (mode: GameMode) => void;
   requestRematch: () => void;
+  resignGame: () => void;
   updateClocks: () => void;
   resetGame: () => void;
 }
@@ -211,6 +212,11 @@ export const useChessStore = create<ChessStore>((set, get) => ({
           blackTime: 600,
           isTimerRunning: true
         });
+      });
+
+      socket.on('game-resigned', ({ winner }: any) => {
+        set({ gameStatus: 'checkmate', winner, isTimerRunning: false });
+        sound.playCheckmateSound();
       });
 
       socket.on('player-disconnected', () => {
@@ -376,6 +382,21 @@ export const useChessStore = create<ChessStore>((set, get) => ({
       socket.emit('request-rematch', { roomId });
     } else {
       get().resetGame();
+    }
+  },
+
+  resignGame: () => {
+    const { socket, roomId, myColor, gameMode } = get();
+    const winner = myColor === 'w' ? 'b' : 'w';
+    set({
+      gameStatus: 'checkmate',
+      winner,
+      isTimerRunning: false
+    });
+    sound.playCheckmateSound();
+
+    if (gameMode === 'multiplayer' && socket) {
+      socket.emit('resign', { roomId, resigningColor: myColor });
     }
   },
 

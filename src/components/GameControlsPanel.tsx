@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useChessStore } from '../store/useChessStore';
-import { RotateCcw, History, Smile } from 'lucide-react';
+import { RotateCcw, History, Smile, Flag } from 'lucide-react';
 
 const EMOJIS = ['👏', '🔥', '👑', '🤔', '🎯', '⚡'];
 
@@ -9,8 +9,10 @@ export const GameControlsPanel: React.FC = () => {
     history,
     turn,
     gameStatus,
+    gameMode,
     sendReaction,
     resetGame,
+    resignGame,
     chess
   } = useChessStore();
 
@@ -159,13 +161,23 @@ export const GameControlsPanel: React.FC = () => {
 
       {/* Action Footer */}
       <div className="shrink-0 pt-0.5">
-        <button
-          onClick={resetGame}
-          className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition-all cursor-pointer"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Reiniciar Tabuleiro</span>
-        </button>
+        {gameMode === 'multiplayer' && gameStatus === 'playing' ? (
+          <button
+            onClick={resignGame}
+            className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition-all cursor-pointer"
+          >
+            <Flag className="w-3.5 h-3.5" />
+            <span>Desistir da Partida</span>
+          </button>
+        ) : (
+          <button
+            onClick={resetGame}
+            className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition-all cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reiniciar Tabuleiro</span>
+          </button>
+        )}
       </div>
     </div>
   );

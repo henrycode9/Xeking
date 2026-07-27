@@ -170,7 +170,7 @@ export const ChessBoard2D: React.FC = () => {
                   <span
                     draggable={!!piece && piece.color === turn}
                     onDragStart={(e) => handleDragStart(e, square)}
-                    className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-none transition-transform duration-150 ${
+                    className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-none transition-transform duration-150 ${
                       isSelected ? 'scale-110 -translate-y-0.5' : 'group-hover:scale-105'
                     } ${getPieceColorClass(piece!.color)} ${piece?.color === turn ? 'cursor-grab active:cursor-grabbing' : ''}`}
                   >
