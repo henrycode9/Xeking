@@ -54,14 +54,14 @@ const SquareTile = React.memo<SquareTileProps>(({
   onDrop,
 }) => {
   // Black & White High-Contrast Tile Colors
-  let tileBgStyle = isDark ? '#27272a' : '#ffffff'; // Deep Zinc Black & Pure White
+  let tileBgStyle = isDark ? '#27272a' : '#ffffff';
 
   if (isSelected) {
-    tileBgStyle = '#71717a'; // Crisp Zinc selection
+    tileBgStyle = '#71717a';
   } else if (isKingInCheck) {
-    tileBgStyle = '#ef4444'; // Sharp Red Check Alert
+    tileBgStyle = '#ef4444';
   } else if (isLastMove) {
-    tileBgStyle = isDark ? '#3f3f46' : '#e4e4e7'; // Soft Gray Last Move Accent
+    tileBgStyle = isDark ? '#3f3f46' : '#e4e4e7';
   }
 
   return (
@@ -74,7 +74,7 @@ const SquareTile = React.memo<SquareTileProps>(({
         backgroundColor: tileBgStyle,
         transform: 'translateZ(0)',
       }}
-      className="relative aspect-square w-full h-full flex items-center justify-center cursor-pointer overflow-hidden transition-none select-none active:brightness-95"
+      className="relative aspect-square w-full h-full flex items-center justify-center cursor-pointer overflow-hidden transition-none select-none active:brightness-95 touch-none"
     >
       {/* Right-click highlight */}
       {isRightClickHl && (
@@ -83,14 +83,14 @@ const SquareTile = React.memo<SquareTileProps>(({
 
       {/* Rank label */}
       {fIdx === 0 && (
-        <span className={`absolute top-0.5 left-1 text-[9px] sm:text-[10px] font-bold pointer-events-none z-20 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`}>
+        <span className={`absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold pointer-events-none z-20 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`}>
           {rank}
         </span>
       )}
 
       {/* File label */}
       {rIdx === 7 && (
-        <span className={`absolute bottom-0.5 right-1 text-[9px] sm:text-[10px] font-bold pointer-events-none z-20 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`}>
+        <span className={`absolute bottom-0.5 right-1 text-[8px] sm:text-[10px] font-bold pointer-events-none z-20 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`}>
           {file}
         </span>
       )}
@@ -99,9 +99,9 @@ const SquareTile = React.memo<SquareTileProps>(({
       {isLegalMove && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
           {piece ? (
-            <div className={`w-full h-full border-[4px] rounded-full ${isDark ? 'border-white/30' : 'border-zinc-900/30'}`} />
+            <div className={`w-full h-full border-[3.5px] sm:border-[4px] rounded-full ${isDark ? 'border-white/40' : 'border-zinc-900/40'}`} />
           ) : (
-            <div className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ${isDark ? 'bg-white/30' : 'bg-zinc-900/30'}`} />
+            <div className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ${isDark ? 'bg-white/40' : 'bg-zinc-900/40'}`} />
           )}
         </div>
       )}
@@ -111,7 +111,7 @@ const SquareTile = React.memo<SquareTileProps>(({
         <div
           draggable={piece.color === turn}
           onDragStart={(e) => onDragStart(e, square)}
-          className={`w-full h-full p-1 sm:p-1.5 flex items-center justify-center z-10 ${
+          className={`w-full h-full p-0.5 sm:p-1.5 flex items-center justify-center z-10 ${
             isSelected ? 'scale-105 -translate-y-0.5' : ''
           } ${piece.color === turn ? 'cursor-grab active:cursor-grabbing' : ''}`}
         >
@@ -205,7 +205,7 @@ export const ChessBoard2D: React.FC = () => {
   }, [selectSquare]);
 
   return (
-    <div className="w-full max-w-[min(100%,calc(100vh-220px))] sm:max-w-lg aspect-square mx-auto flex items-center justify-center relative select-none shrink-0">
+    <div className="w-full max-w-[min(94vw,calc(100dvh-230px))] sm:max-w-lg aspect-square mx-auto flex items-center justify-center relative select-none shrink-0">
 
       {/* Pawn Promotion Overlay */}
       {pendingPromotion && (

@@ -32,7 +32,7 @@ export default function App() {
   }, [reactions.length, expireReactions]);
 
   return (
-    <div className="h-screen w-screen max-w-screen overflow-hidden bg-[#f4f4f5] text-[#09090b] flex flex-col p-2.5 sm:p-3.5 antialiased select-none">
+    <div className="h-[100dvh] w-screen max-w-screen overflow-hidden bg-[#f4f4f5] text-[#09090b] flex flex-col p-2 sm:p-3.5 antialiased select-none">
 
       <div className="relative z-10 w-full h-full flex flex-col min-h-0">
 
@@ -40,7 +40,7 @@ export default function App() {
         <HeaderUI onOpenQRModal={() => setIsQRModalOpen(true)} />
 
         {/* Main Game Grid */}
-        <main className="w-full max-w-7xl mx-auto flex-1 flex flex-col lg:grid lg:grid-cols-12 gap-3.5 min-h-0 py-1.5 items-stretch">
+        <main className="w-full max-w-7xl mx-auto flex-1 flex flex-col lg:grid lg:grid-cols-12 gap-2.5 sm:gap-3.5 min-h-0 py-1 sm:py-1.5 items-stretch overflow-y-auto lg:overflow-hidden">
 
           {/* Board Column */}
           <div className="lg:col-span-8 w-full flex flex-col items-center justify-center relative shrink-0 min-h-0 overflow-hidden">

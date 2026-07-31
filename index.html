@@ -2,24 +2,30 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
   <title>Xeking • Xadrez Online</title>
   <meta name="description" content="Jogue xadrez online em tempo real com um amigo via QR Code. Sem registo nem instalação." />
-  <meta name="theme-color" content="#020617" />
+  <meta name="theme-color" content="#f4f4f5" />
 
   <!-- Open Graph -->
   <meta property="og:title"       content="Xeking • Xadrez Online" />
   <meta property="og:description" content="Jogue xadrez online com um amigo. Sem registo, sem app — basta partilhar o QR Code." />
   <meta property="og:type"        content="website" />
 
-  <!-- PWA / Mobile -->
+  <!-- PWA / Mobile Web App Capable -->
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
-  <!-- Kills 300ms tap delay on mobile -->
-  <style>html { touch-action: manipulation; }</style>
+  <!-- Kills 300ms tap delay & overscroll bounce on mobile -->
+  <style>
+    html, body {
+      touch-action: manipulation;
+      overscroll-behavior: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+  </style>
 </head>
 <body>
   <div id="root"></div>
