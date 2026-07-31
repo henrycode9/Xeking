@@ -53,15 +53,15 @@ const SquareTile = React.memo<SquareTileProps>(({
   onDragStart,
   onDrop,
 }) => {
-  // Black & White High-Contrast Tile Colors
+  // High-Contrast Monochromatic Board Palette
   let tileBgStyle = isDark ? '#27272a' : '#ffffff';
 
   if (isSelected) {
-    tileBgStyle = '#71717a';
+    tileBgStyle = '#52525b'; // Deep Zinc Selected Tile
   } else if (isKingInCheck) {
-    tileBgStyle = '#ef4444';
+    tileBgStyle = '#dc2626'; // Vivid Red King Check Alert
   } else if (isLastMove) {
-    tileBgStyle = isDark ? '#3f3f46' : '#e4e4e7';
+    tileBgStyle = isDark ? '#3f3f46' : '#e4e4e7'; // Crisp Last Move Accent
   }
 
   return (
@@ -74,45 +74,45 @@ const SquareTile = React.memo<SquareTileProps>(({
         backgroundColor: tileBgStyle,
         transform: 'translateZ(0)',
       }}
-      className="relative aspect-square w-full h-full flex items-center justify-center cursor-pointer overflow-hidden transition-none select-none active:brightness-95 touch-none"
+      className="relative aspect-square w-full h-full flex items-center justify-center cursor-pointer overflow-hidden transition-none select-none active:scale-[0.98] touch-none"
     >
       {/* Right-click highlight */}
       {isRightClickHl && (
-        <div className="absolute inset-0 bg-zinc-400/40 z-0 pointer-events-none" />
+        <div className="absolute inset-0 bg-amber-400/40 z-0 pointer-events-none" />
       )}
 
       {/* Rank label */}
       {fIdx === 0 && (
-        <span className={`absolute top-0.5 left-1 text-[8px] sm:text-[10px] font-bold pointer-events-none z-20 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`}>
+        <span className={`absolute top-0.5 left-1 text-[9px] sm:text-[10px] font-extrabold pointer-events-none z-20 ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
           {rank}
         </span>
       )}
 
       {/* File label */}
       {rIdx === 7 && (
-        <span className={`absolute bottom-0.5 right-1 text-[8px] sm:text-[10px] font-bold pointer-events-none z-20 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`}>
+        <span className={`absolute bottom-0.5 right-1 text-[9px] sm:text-[10px] font-extrabold pointer-events-none z-20 ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
           {file}
         </span>
       )}
 
-      {/* Instant Legal Move Indicators */}
+      {/* High-Contrast Vivid Legal Move Indicators (Satisfying Emerald Accent) */}
       {isLegalMove && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
           {piece ? (
-            <div className={`w-full h-full border-[3.5px] sm:border-[4px] rounded-full ${isDark ? 'border-white/40' : 'border-zinc-900/40'}`} />
+            <div className="w-full h-full border-[4px] sm:border-[5px] border-emerald-500/80 rounded-full animate-pulse" />
           ) : (
-            <div className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ${isDark ? 'bg-white/40' : 'bg-zinc-900/40'}`} />
+            <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-500/80 border border-white shadow-sm" />
           )}
         </div>
       )}
 
-      {/* Chess piece */}
+      {/* Chess piece with high legibility */}
       {piece && (
         <div
           draggable={piece.color === turn}
           onDragStart={(e) => onDragStart(e, square)}
           className={`w-full h-full p-0.5 sm:p-1.5 flex items-center justify-center z-10 ${
-            isSelected ? 'scale-105 -translate-y-0.5' : ''
+            isSelected ? 'scale-110 -translate-y-1' : ''
           } ${piece.color === turn ? 'cursor-grab active:cursor-grabbing' : ''}`}
         >
           <ChessPieceSVG type={piece.type as PieceType} color={piece.color as PlayerColor} />
@@ -205,7 +205,7 @@ export const ChessBoard2D: React.FC = () => {
   }, [selectSquare]);
 
   return (
-    <div className="w-full max-w-[min(94vw,calc(100dvh-230px))] sm:max-w-lg aspect-square mx-auto flex items-center justify-center relative select-none shrink-0">
+    <div className="w-full max-w-[min(96vw,calc(100dvh-170px))] sm:max-w-lg aspect-square mx-auto flex items-center justify-center relative select-none shrink-0">
 
       {/* Pawn Promotion Overlay */}
       {pendingPromotion && (
@@ -243,8 +243,8 @@ export const ChessBoard2D: React.FC = () => {
         </div>
       )}
 
-      {/* Black & White Board Grid */}
-      <div className="w-full aspect-square grid grid-cols-8 grid-rows-8 rounded-2xl overflow-hidden p-1.5 bg-zinc-900 border border-zinc-900 shadow-xl">
+      {/* Borderless High-Contrast Board Grid (Zero Black Border Frame) */}
+      <div className="w-full aspect-square grid grid-cols-8 grid-rows-8 rounded-2xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.08)] bg-white border-0">
         {displayedRanks.map((rank, rIdx) =>
           displayedFiles.map((file, fIdx) => {
             const square      = `${file}${rank}` as Square;

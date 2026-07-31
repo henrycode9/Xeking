@@ -24,27 +24,27 @@ export const HeaderUI: React.FC<HeaderUIProps> = ({ onOpenQRModal }) => {
   const gameStatus          = useChessStore((s) => s.gameStatus);
 
   return (
-    <header className="w-full max-w-7xl mx-auto py-1 shrink-0 space-y-2">
+    <header className="w-full max-w-7xl mx-auto py-0.5 shrink-0 space-y-1.5 sm:space-y-2">
       {/* Black & White Header Container */}
-      <div className="flex flex-wrap items-center justify-between gap-2 py-2.5 px-4 rounded-2xl bg-white border border-zinc-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+      <div className="flex items-center justify-between gap-2 py-2 px-3 sm:px-4 rounded-2xl bg-white border border-zinc-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
         {/* Brand: "Xeking" in Black & White Graffiti Font */}
-        <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-xl bg-zinc-950 text-white flex items-center justify-center font-bold shadow-sm">
-            <Crown className="w-4.5 h-4.5" />
+        <div className="flex items-center space-x-2">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-zinc-950 text-white flex items-center justify-center font-bold shadow-sm shrink-0">
+            <Crown className="w-4 h-4" />
           </div>
-          <span className="text-xl sm:text-2xl font-graffiti tracking-wider bg-gradient-to-r from-zinc-950 via-zinc-800 to-zinc-900 bg-clip-text text-transparent drop-shadow-sm select-none -rotate-1">
+          <span className="text-lg sm:text-2xl font-graffiti tracking-wider bg-gradient-to-r from-zinc-950 via-zinc-800 to-zinc-900 bg-clip-text text-transparent drop-shadow-sm select-none -rotate-1">
             Xeking
           </span>
         </div>
 
         {/* Controls */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1.5 sm:space-x-2">
           {/* Game Mode Switcher */}
-          <div className="flex items-center p-1 rounded-xl bg-zinc-100 border border-zinc-200">
+          <div className="flex items-center p-0.5 sm:p-1 rounded-xl bg-zinc-100 border border-zinc-200">
             <button
               onClick={() => setGameMode('multiplayer')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
                 gameMode === 'multiplayer'
                   ? 'bg-zinc-950 text-white shadow-sm'
                   : 'text-zinc-600 hover:text-zinc-950'
@@ -55,7 +55,7 @@ export const HeaderUI: React.FC<HeaderUIProps> = ({ onOpenQRModal }) => {
             </button>
             <button
               onClick={() => setGameMode('pass-and-play')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
                 gameMode === 'pass-and-play'
                   ? 'bg-zinc-950 text-white shadow-sm'
                   : 'text-zinc-600 hover:text-zinc-950'
@@ -70,17 +70,17 @@ export const HeaderUI: React.FC<HeaderUIProps> = ({ onOpenQRModal }) => {
           {gameMode === 'multiplayer' && (
             <button
               onClick={onOpenQRModal}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95"
             >
               <QrCode className="w-3.5 h-3.5" />
-              <span>Convidar</span>
+              <span className="hidden xs:inline sm:inline">Convidar</span>
             </button>
           )}
 
           {/* Sound Toggle */}
           <button
             onClick={toggleSound}
-            className="p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-all cursor-pointer active:scale-95"
+            className="p-1.5 sm:p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-all cursor-pointer active:scale-95 shrink-0"
             title={isSoundMuted ? 'Ativar som' : 'Desativar som'}
           >
             {isSoundMuted
@@ -91,51 +91,51 @@ export const HeaderUI: React.FC<HeaderUIProps> = ({ onOpenQRModal }) => {
       </div>
 
       {/* High-Contrast Clocks Bar */}
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
         {/* Black Clock */}
         <div
-          className={`py-2 px-4 rounded-2xl border transition-all flex items-center justify-between shadow-sm ${
+          className={`py-1.5 sm:py-2 px-3 sm:px-4 rounded-2xl border transition-all flex items-center justify-between shadow-sm ${
             turn === 'b' && gameStatus === 'playing'
               ? 'bg-zinc-950 text-white border-zinc-950 ring-2 ring-zinc-500/50'
               : 'bg-white text-zinc-900 border-zinc-200'
           }`}
         >
-          <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded-full bg-zinc-950 border border-zinc-400 inline-block shadow-sm" />
+          <div className="flex items-center space-x-1.5 sm:space-x-2">
+            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-zinc-950 border border-zinc-400 inline-block shadow-sm shrink-0" />
             <div className="text-left">
-              <p className="text-xs font-bold leading-tight">Pretas</p>
-              <p className="text-[10px] opacity-70 leading-tight">
+              <p className="text-[11px] sm:text-xs font-bold leading-tight">Pretas</p>
+              <p className="text-[9px] sm:text-[10px] opacity-70 leading-tight">
                 {gameMode === 'multiplayer'
-                  ? myColor === 'b' ? 'Você (Pretas)' : 'Oponente'
+                  ? myColor === 'b' ? 'Você' : 'Oponente'
                   : 'Jogador 2'}
               </p>
             </div>
           </div>
-          <span className="font-mono text-lg font-extrabold tracking-wider">
+          <span className="font-mono text-base sm:text-lg font-extrabold tracking-wider">
             {formatTime(blackTime)}
           </span>
         </div>
 
         {/* White Clock */}
         <div
-          className={`py-2 px-4 rounded-2xl border transition-all flex items-center justify-between shadow-sm ${
+          className={`py-1.5 sm:py-2 px-3 sm:px-4 rounded-2xl border transition-all flex items-center justify-between shadow-sm ${
             turn === 'w' && gameStatus === 'playing'
               ? 'bg-white text-zinc-950 border-zinc-950 ring-2 ring-zinc-950/40 shadow-md'
               : 'bg-white text-zinc-900 border-zinc-200'
           }`}
         >
-          <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded-full bg-white border border-zinc-900 inline-block shadow-sm" />
+          <div className="flex items-center space-x-1.5 sm:space-x-2">
+            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-white border border-zinc-900 inline-block shadow-sm shrink-0" />
             <div className="text-left">
-              <p className="text-xs font-bold leading-tight">Brancas</p>
-              <p className="text-[10px] opacity-70 leading-tight">
+              <p className="text-[11px] sm:text-xs font-bold leading-tight">Brancas</p>
+              <p className="text-[9px] sm:text-[10px] opacity-70 leading-tight">
                 {gameMode === 'multiplayer'
-                  ? myColor === 'w' ? 'Você (Criador)' : 'Oponente'
-                  : 'Você (Brancas)'}
+                  ? myColor === 'w' ? 'Você' : 'Oponente'
+                  : 'Você'}
               </p>
             </div>
           </div>
-          <span className="font-mono text-lg font-extrabold tracking-wider">
+          <span className="font-mono text-base sm:text-lg font-extrabold tracking-wider">
             {formatTime(whiteTime)}
           </span>
         </div>
