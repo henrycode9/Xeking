@@ -1,93 +1,218 @@
-import React from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { Square } from 'chess.js';
 import { useChessStore } from '../store/useChessStore';
+import { ChessPieceSVG } from './ChessPieceSVG';
+import { PieceType, PlayerColor } from '../types';
 
-const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-const RANKS = ['8', '7', '6', '5', '4', '3', '2', '1'];
+const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const;
+const RANKS = ['8', '7', '6', '5', '4', '3', '2', '1'] as const;
 
-// Unicode Chess Symbols
-const PIECE_SYMBOLS: Record<string, string> = {
-  'w-k': '♔', 'w-q': '♕', 'w-r': '♖', 'w-b': '♗', 'w-n': '♘', 'w-p': '♙',
-  'b-k': '♚', 'b-q': '♛', 'b-r': '♜', 'b-b': '♝', 'b-n': '♞', 'b-p': '♟',
-};
+const PROMOTION_PIECES: { type: PieceType; name: string }[] = [
+  { type: 'q', name: 'Rainha' },
+  { type: 'r', name: 'Torre'  },
+  { type: 'b', name: 'Bispo'  },
+  { type: 'n', name: 'Cavalo' },
+];
+
+interface SquareTileProps {
+  square: Square;
+  file: string;
+  rank: string;
+  fIdx: number;
+  rIdx: number;
+  piece: { type: string; color: string } | null;
+  isDark: boolean;
+  isSelected: boolean;
+  isLegalMove: boolean;
+  isLastMove: boolean;
+  isKingInCheck: boolean;
+  isRightClickHl: boolean;
+  turn: PlayerColor;
+  onSquareClick: (sq: Square) => void;
+  onRightClick: (e: React.MouseEvent, sq: Square) => void;
+  onDragStart: (e: React.DragEvent, sq: Square) => void;
+  onDrop: (e: React.DragEvent, sq: Square) => void;
+}
+
+const SquareTile = React.memo<SquareTileProps>(({
+  square,
+  file,
+  rank,
+  fIdx,
+  rIdx,
+  piece,
+  isDark,
+  isSelected,
+  isLegalMove,
+  isLastMove,
+  isKingInCheck,
+  isRightClickHl,
+  turn,
+  onSquareClick,
+  onRightClick,
+  onDragStart,
+  onDrop,
+}) => {
+  // Black & White High-Contrast Tile Colors
+  let tileBgStyle = isDark ? '#27272a' : '#ffffff'; // Deep Zinc Black & Pure White
+
+  if (isSelected) {
+    tileBgStyle = '#71717a'; // Crisp Zinc selection
+  } else if (isKingInCheck) {
+    tileBgStyle = '#ef4444'; // Sharp Red Check Alert
+  } else if (isLastMove) {
+    tileBgStyle = isDark ? '#3f3f46' : '#e4e4e7'; // Soft Gray Last Move Accent
+  }
+
+  return (
+    <button
+      onClick={() => onSquareClick(square)}
+      onContextMenu={(e) => onRightClick(e, square)}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => onDrop(e, square)}
+      style={{
+        backgroundColor: tileBgStyle,
+        transform: 'translateZ(0)',
+      }}
+      className="relative aspect-square w-full h-full flex items-center justify-center cursor-pointer overflow-hidden transition-none select-none active:brightness-95"
+    >
+      {/* Right-click highlight */}
+      {isRightClickHl && (
+        <div className="absolute inset-0 bg-zinc-400/40 z-0 pointer-events-none" />
+      )}
+
+      {/* Rank label */}
+      {fIdx === 0 && (
+        <span className={`absolute top-0.5 left-1 text-[9px] sm:text-[10px] font-bold pointer-events-none z-20 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`}>
+          {rank}
+        </span>
+      )}
+
+      {/* File label */}
+      {rIdx === 7 && (
+        <span className={`absolute bottom-0.5 right-1 text-[9px] sm:text-[10px] font-bold pointer-events-none z-20 ${isDark ? 'text-zinc-200' : 'text-zinc-700'}`}>
+          {file}
+        </span>
+      )}
+
+      {/* Instant Legal Move Indicators */}
+      {isLegalMove && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+          {piece ? (
+            <div className={`w-full h-full border-[4px] rounded-full ${isDark ? 'border-white/30' : 'border-zinc-900/30'}`} />
+          ) : (
+            <div className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ${isDark ? 'bg-white/30' : 'bg-zinc-900/30'}`} />
+          )}
+        </div>
+      )}
+
+      {/* Chess piece */}
+      {piece && (
+        <div
+          draggable={piece.color === turn}
+          onDragStart={(e) => onDragStart(e, square)}
+          className={`w-full h-full p-1 sm:p-1.5 flex items-center justify-center z-10 ${
+            isSelected ? 'scale-105 -translate-y-0.5' : ''
+          } ${piece.color === turn ? 'cursor-grab active:cursor-grabbing' : ''}`}
+        >
+          <ChessPieceSVG type={piece.type as PieceType} color={piece.color as PlayerColor} />
+        </div>
+      )}
+    </button>
+  );
+});
+
+SquareTile.displayName = 'SquareTile';
 
 export const ChessBoard2D: React.FC = () => {
-  const {
-    chess,
-    selectedSquare,
-    legalMoves,
-    lastMove,
-    selectSquare,
-    makeMove,
-    pendingPromotion,
-    setPendingPromotion,
-    turn,
-    myColor
-  } = useChessStore();
+  const chess            = useChessStore((s) => s.chess);
+  const fen              = useChessStore((s) => s.fen);
+  const selectedSquare   = useChessStore((s) => s.selectedSquare);
+  const legalMoves       = useChessStore((s) => s.legalMoves);
+  const lastMove         = useChessStore((s) => s.lastMove);
+  const turn             = useChessStore((s) => s.turn);
+  const myColor          = useChessStore((s) => s.myColor);
+  const pendingPromotion = useChessStore((s) => s.pendingPromotion);
+  const selectSquare     = useChessStore((s) => s.selectSquare);
+  const makeMove         = useChessStore((s) => s.makeMove);
+  const setPendingPromotion = useChessStore((s) => s.setPendingPromotion);
 
-  const board = chess.board();
+  const [highlightedSquares, setHighlightedSquares] = useState<Set<Square>>(new Set());
 
-  // If user plays black, invert board orientation
-  const displayedFiles = myColor === 'b' ? [...FILES].reverse() : FILES;
-  const displayedRanks = myColor === 'b' ? [...RANKS].reverse() : RANKS;
+  const board = useMemo(() => chess.board(), [fen]);
 
-  const getTileStyle = (isDark: boolean, isSelected: boolean, isLastMove: boolean) => {
-    if (isSelected) {
-      return 'bg-blue-600 text-white ring-4 ring-blue-400 scale-[0.96] z-10 shadow-lg';
-    }
-    if (isLastMove) {
-      return 'bg-amber-300/80 ring-2 ring-amber-400';
-    }
-
-    return isDark
-      ? 'bg-slate-300 hover:bg-slate-400/80 text-slate-900 border border-slate-300/50'
-      : 'bg-white hover:bg-slate-50 text-slate-900 border border-slate-200/80';
-  };
-
-  const getPieceColorClass = (color: 'w' | 'b') => {
-    return color === 'w' 
-      ? 'text-amber-500 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]' 
-      : 'text-slate-900 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]';
-  };
-
-  const handleDragStart = (e: React.DragEvent, square: Square) => {
-    e.dataTransfer.setData('text/plain', square);
-    selectSquare(square);
-  };
-
-  const handleDrop = (e: React.DragEvent, targetSquare: Square) => {
-    e.preventDefault();
-    const fromSquare = e.dataTransfer.getData('text/plain') as Square;
-    if (fromSquare && fromSquare !== targetSquare) {
-      const moves = chess.moves({ square: fromSquare, verbose: true });
-      const targetMove = moves.find((m) => m.to === targetSquare);
-
-      if (targetMove) {
-        if (targetMove.promotion) {
-          setPendingPromotion({ from: fromSquare, to: targetSquare });
-        } else {
-          makeMove(fromSquare, targetSquare);
+  const kingInCheckSquare = useMemo<Square | null>(() => {
+    if (!chess.inCheck()) return null;
+    const currentTurn = chess.turn();
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const piece = board[r][c];
+        if (piece && piece.type === 'k' && piece.color === currentTurn) {
+          return `${FILES[c]}${RANKS[r]}` as Square;
         }
       }
     }
-  };
+    return null;
+  }, [fen]);
 
-  const PROMOTION_PIECES = [
-    { type: 'q', symbol: turn === 'w' ? '♕' : '♛', name: 'Rainha' },
-    { type: 'r', symbol: turn === 'w' ? '♖' : '♜', name: 'Torre' },
-    { type: 'b', symbol: turn === 'w' ? '♗' : '♝', name: 'Bispo' },
-    { type: 'n', symbol: turn === 'w' ? '♘' : '♞', name: 'Cavalo' },
-  ];
+  const displayedFiles = useMemo(
+    () => (myColor === 'b' ? [...FILES].reverse() : [...FILES]),
+    [myColor]
+  );
+  const displayedRanks = useMemo(
+    () => (myColor === 'b' ? [...RANKS].reverse() : [...RANKS]),
+    [myColor]
+  );
+
+  const handleDragStart = useCallback((e: React.DragEvent, square: Square) => {
+    e.dataTransfer.setData('text/plain', square);
+    selectSquare(square);
+    setHighlightedSquares(new Set());
+  }, [selectSquare]);
+
+  const handleDrop = useCallback((e: React.DragEvent, targetSquare: Square) => {
+    e.preventDefault();
+    const fromSquare = e.dataTransfer.getData('text/plain') as Square;
+    if (!fromSquare || fromSquare === targetSquare) return;
+
+    const moves = chess.moves({ square: fromSquare, verbose: true });
+    const target = moves.find((m) => m.to === targetSquare);
+    if (!target) return;
+
+    if (target.promotion) {
+      setPendingPromotion({ from: fromSquare, to: targetSquare });
+    } else {
+      makeMove(fromSquare, targetSquare);
+    }
+  }, [chess, makeMove, setPendingPromotion]);
+
+  const handleRightClick = useCallback((e: React.MouseEvent, square: Square) => {
+    e.preventDefault();
+    setHighlightedSquares((prev) => {
+      const next = new Set(prev);
+      if (next.has(square)) {
+        next.delete(square);
+      } else {
+        next.add(square);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSquareClick = useCallback((square: Square) => {
+    setHighlightedSquares(new Set());
+    selectSquare(square);
+  }, [selectSquare]);
 
   return (
-    <div className="w-full max-w-[98vw] sm:max-w-xl aspect-square mx-auto flex flex-col justify-center items-center transition-all duration-300 pro-card p-1 sm:p-2.5 min-h-0 overflow-hidden shadow-2xl relative">
-      
-      {/* Pawn Promotion Overlay Modal */}
+    <div className="w-full max-w-[min(100%,calc(100vh-220px))] sm:max-w-lg aspect-square mx-auto flex items-center justify-center relative select-none shrink-0">
+
+      {/* Pawn Promotion Overlay */}
       {pendingPromotion && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm animate-fadeIn p-4">
-          <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xl text-center max-w-xs w-full animate-bounce">
-            <h3 className="text-sm font-bold text-slate-900 mb-1 font-pro">Promoção do Peão</h3>
-            <p className="text-xs text-slate-500 mb-4">Escolha a peça para promover:</p>
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 rounded-3xl animate-fadeIn">
+          <div className="bg-white border border-zinc-200 p-5 rounded-2xl shadow-2xl text-center max-w-xs w-full">
+            <h3 className="text-sm font-bold text-zinc-900 mb-1">Promover Peão</h3>
+            <p className="text-xs text-zinc-500 mb-4">Escolha a nova peça:</p>
             <div className="grid grid-cols-4 gap-2">
               {PROMOTION_PIECES.map((p) => (
                 <button
@@ -96,11 +221,15 @@ export const ChessBoard2D: React.FC = () => {
                     makeMove(pendingPromotion.from, pendingPromotion.to, p.type);
                     setPendingPromotion(null);
                   }}
-                  className="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-100 hover:bg-blue-600 hover:text-white border border-slate-200 transition-all transform hover:scale-110 cursor-pointer text-slate-900 group"
+                  className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-900 hover:text-white border border-zinc-200 transition-all cursor-pointer group active:scale-95 shadow-sm"
                   title={p.name}
                 >
-                  <span className="text-4xl leading-none">{p.symbol}</span>
-                  <span className="text-[10px] font-semibold mt-1 group-hover:text-white">{p.name}</span>
+                  <div className="w-10 h-10 flex items-center justify-center">
+                    <ChessPieceSVG type={p.type} color={turn} />
+                  </div>
+                  <span className="text-[10px] font-semibold mt-1 text-zinc-700 group-hover:text-white">
+                    {p.name}
+                  </span>
                 </button>
               ))}
             </div>
@@ -114,70 +243,43 @@ export const ChessBoard2D: React.FC = () => {
         </div>
       )}
 
-      <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-0.5 rounded-2xl overflow-hidden p-1 bg-slate-200 border border-slate-300 shadow-inner">
+      {/* Black & White Board Grid */}
+      <div className="w-full aspect-square grid grid-cols-8 grid-rows-8 rounded-2xl overflow-hidden p-1.5 bg-zinc-900 border border-zinc-900 shadow-xl">
         {displayedRanks.map((rank, rIdx) =>
           displayedFiles.map((file, fIdx) => {
-            const square = `${file}${rank}` as Square;
-            
-            // Get actual piece from chess.js matrix
-            const actualRIdx = 8 - parseInt(rank);
-            const actualCIdx = FILES.indexOf(file);
-            const piece = board[actualRIdx]?.[actualCIdx];
+            const square      = `${file}${rank}` as Square;
+            const actualRIdx  = 8 - parseInt(rank);
+            const actualCIdx  = FILES.indexOf(file as typeof FILES[number]);
+            const piece       = board[actualRIdx]?.[actualCIdx];
 
-            const isDark = (actualRIdx + actualCIdx) % 2 === 1;
-            const isSelected = selectedSquare === square;
-            const isLegalMove = legalMoves.includes(square);
-            const isLastMove = lastMove?.from === square || lastMove?.to === square;
-
-            const pieceKey = piece ? `${piece.color}-${piece.type}` : null;
-            const symbol = pieceKey ? PIECE_SYMBOLS[pieceKey] : null;
+            const isDark          = (actualRIdx + actualCIdx) % 2 === 1;
+            const isSelected      = selectedSquare === square;
+            const isLegalMove     = legalMoves.includes(square);
+            const isLastMove      = lastMove?.from === square || lastMove?.to === square;
+            const isKingInCheck   = kingInCheckSquare === square;
+            const isRightClickHl  = highlightedSquares.has(square);
 
             return (
-              <button
+              <SquareTile
                 key={square}
-                onClick={() => selectSquare(square)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => handleDrop(e, square)}
-                className={`relative flex items-center justify-center transition-all duration-150 aspect-square rounded-lg select-none cursor-pointer group font-pro overflow-hidden ${getTileStyle(isDark, isSelected, isLastMove)}`}
-              >
-                {/* File/Rank Label */}
-                {fIdx === 0 && (
-                  <span className={`absolute top-0.5 left-1 text-[9px] sm:text-[10px] font-mono font-bold leading-none pointer-events-none z-20 opacity-75 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
-                    {rank}
-                  </span>
-                )}
-                {rIdx === 7 && (
-                  <span className={`absolute bottom-0.5 right-1 text-[9px] sm:text-[10px] font-mono font-bold leading-none pointer-events-none z-20 opacity-75 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
-                    {file}
-                  </span>
-                )}
-
-                {/* Legal Move Indicator Dot */}
-                {isLegalMove && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                    <div
-                      className={`rounded-full transition-transform duration-200 group-hover:scale-125 ${
-                        piece
-                          ? 'w-full h-full border-4 border-emerald-500 rounded-lg animate-pulse'
-                          : 'w-3.5 h-3.5 sm:w-4 sm:h-4 bg-emerald-500 shadow-md shadow-emerald-500/40'
-                      }`}
-                    />
-                  </div>
-                )}
-
-                {/* Piece Rendering */}
-                {symbol && (
-                  <span
-                    draggable={!!piece && piece.color === turn}
-                    onDragStart={(e) => handleDragStart(e, square)}
-                    className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-none flex items-center justify-center transition-transform duration-150 z-10 ${
-                      isSelected ? 'scale-110 -translate-y-0.5' : 'group-hover:scale-105'
-                    } ${getPieceColorClass(piece!.color)} ${piece?.color === turn ? 'cursor-grab active:cursor-grabbing' : ''}`}
-                  >
-                    {symbol}
-                  </span>
-                )}
-              </button>
+                square={square}
+                file={file}
+                rank={rank}
+                fIdx={fIdx}
+                rIdx={rIdx}
+                piece={piece}
+                isDark={isDark}
+                isSelected={isSelected}
+                isLegalMove={isLegalMove}
+                isLastMove={isLastMove}
+                isKingInCheck={isKingInCheck}
+                isRightClickHl={isRightClickHl}
+                turn={turn}
+                onSquareClick={handleSquareClick}
+                onRightClick={handleRightClick}
+                onDragStart={handleDragStart}
+                onDrop={handleDrop}
+              />
             );
           })
         )}
@@ -185,6 +287,3 @@ export const ChessBoard2D: React.FC = () => {
     </div>
   );
 };
-
-
-

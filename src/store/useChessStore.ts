@@ -1,11 +1,47 @@
 import { create } from 'zustand';
 import { Chess, Square } from 'chess.js';
 import { io, Socket } from 'socket.io-client';
-import { GameMode, PlayerColor, GameStatus, ThemeMode, MoveLog, Reaction } from '../types';
+import { GameMode, PlayerColor, GameStatus, MoveLog, Reaction } from '../types';
 import { sound } from '../utils/sound';
 import confetti from 'canvas-confetti';
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const DEFAULT_TIME = 600; // 10 minutes
+const MAX_REACTIONS = 10;
+const REACTION_TTL_MS = 4000;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const generateRoomId = (): string => {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  return Array.from(
+    { length: 6 },
+    () => chars[Math.floor(Math.random() * chars.length)]
+  ).join('');
+};
+
+/**
+ * Evaluates end-of-game state after a move.
+ * Single source of truth — used by both local and remote move handlers.
+ */
+function resolveGameEnd(
+  chess: Chess,
+  moverColor: PlayerColor
+): { status: GameStatus; winner: PlayerColor | 'draw' | null } | null {
+  if (chess.isCheckmate()) {
+    return { status: 'checkmate', winner: moverColor };
+  }
+  if (chess.isDraw() || chess.isStalemate()) {
+    return { status: 'draw', winner: 'draw' };
+  }
+  return null;
+}
+
+// ─── Store interface ──────────────────────────────────────────────────────────
+
 interface ChessStore {
+  // Board state
   chess: Chess;
   fen: string;
   turn: PlayerColor;
@@ -14,7 +50,7 @@ interface ChessStore {
   legalMoves: Square[];
   lastMove: { from: Square; to: Square } | null;
   history: MoveLog[];
-  
+
   // Game setup & multiplayer
   gameMode: GameMode;
   myColor: PlayerColor;
@@ -23,32 +59,29 @@ interface ChessStore {
   isOpponentConnected: boolean;
   playerName: string;
   opponentName: string;
-  
-  // UI & Theme
-  themeMode: ThemeMode;
+
+  // UI
   isSoundMuted: boolean;
   gameStatus: GameStatus;
   winner: PlayerColor | 'draw' | null;
-  
+
   // Clocks
-  timeLimit: number; // in seconds (e.g. 600 = 10 mins)
   whiteTime: number;
   blackTime: number;
   isTimerRunning: boolean;
-  
+
   // Reactions
   reactions: Reaction[];
 
-  // Pawn Promotion state
+  // Pawn promotion
   pendingPromotion: { from: Square; to: Square } | null;
-  setPendingPromotion: (promo: { from: Square; to: Square } | null) => void;
-  
+
   // Actions
   initGame: (mode?: GameMode, customRoomId?: string) => void;
   selectSquare: (square: Square | null) => void;
   setHoveredSquare: (square: Square | null) => void;
   makeMove: (from: Square, to: Square, promotion?: string) => boolean;
-  setThemeMode: (theme: ThemeMode) => void;
+  setPendingPromotion: (promo: { from: Square; to: Square } | null) => void;
   toggleSound: () => void;
   sendReaction: (emoji: string) => void;
   setGameMode: (mode: GameMode) => void;
@@ -56,27 +89,21 @@ interface ChessStore {
   resignGame: () => void;
   updateClocks: () => void;
   resetGame: () => void;
+  expireReactions: () => void;
 }
 
-const generateRoomId = () => {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let id = '';
-  for (let i = 0; i < 6; i++) {
-    id += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return id;
-};
+// ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useChessStore = create<ChessStore>((set, get) => ({
   chess: new Chess(),
-  fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  fen: new Chess().fen(),
   turn: 'w',
   selectedSquare: null,
   hoveredSquare: null,
   legalMoves: [],
   lastMove: null,
   history: [],
-  
+
   gameMode: 'multiplayer',
   myColor: 'w',
   roomId: '',
@@ -84,153 +111,157 @@ export const useChessStore = create<ChessStore>((set, get) => ({
   isOpponentConnected: false,
   playerName: 'Criador',
   opponentName: 'Oponente',
-  
-  themeMode: 'pro-light',
+
   isSoundMuted: false,
   gameStatus: 'waiting',
   winner: null,
-  
-  timeLimit: 600,
-  whiteTime: 600,
-  blackTime: 600,
+
+  whiteTime: DEFAULT_TIME,
+  blackTime: DEFAULT_TIME,
   isTimerRunning: false,
-  
+
   reactions: [],
   pendingPromotion: null,
-  setPendingPromotion: (pendingPromotion) => set({ pendingPromotion }),
 
+  // ── initGame ────────────────────────────────────────────────────────────────
   initGame: (mode = 'multiplayer', customRoomId) => {
-    const { socket: existingSocket } = get();
-    if (existingSocket) {
-      existingSocket.disconnect();
+    // Tear down any existing socket
+    const { socket: prev } = get();
+    if (prev) {
+      prev.removeAllListeners();
+      prev.disconnect();
     }
 
     const chess = new Chess();
-    const targetRoomId = customRoomId || generateRoomId();
+    const targetRoomId = customRoomId ?? generateRoomId();
 
-    const socket = io({
-      autoConnect: true,
-      reconnection: true
-    });
-
-    set({
+    const baseState = {
       chess,
       fen: chess.fen(),
-      turn: 'w',
-      selectedSquare: null,
-      legalMoves: [],
+      turn: 'w' as PlayerColor,
+      selectedSquare: null as Square | null,
+      legalMoves: [] as Square[],
       lastMove: null,
-      history: [],
+      history: [] as MoveLog[],
       gameMode: mode,
       roomId: targetRoomId,
-      socket,
-      gameStatus: mode === 'multiplayer' ? 'waiting' : 'playing',
+      gameStatus: (mode === 'multiplayer' ? 'waiting' : 'playing') as GameStatus,
       winner: null,
-      whiteTime: 600,
-      blackTime: 600,
-      isTimerRunning: mode !== 'multiplayer'
+      whiteTime: DEFAULT_TIME,
+      blackTime: DEFAULT_TIME,
+      isOpponentConnected: false,
+      reactions: [] as Reaction[],
+    };
+
+    // pass-and-play — no socket needed
+    if (mode === 'pass-and-play') {
+      set({ ...baseState, socket: null, myColor: 'w', isTimerRunning: true });
+      return;
+    }
+
+    // multiplayer — create socket
+    const socket = io({ autoConnect: true, reconnection: true });
+    set({ ...baseState, socket, isTimerRunning: false });
+
+    socket.emit('join-room', { roomId: targetRoomId });
+
+    socket.on('room-joined', ({ myColor, roomState }: { myColor: PlayerColor; roomState: { whiteTime: number; blackTime: number } }) => {
+      set({
+        myColor,
+        whiteTime: roomState.whiteTime ?? DEFAULT_TIME,
+        blackTime: roomState.blackTime ?? DEFAULT_TIME,
+      });
     });
 
-    if (mode === 'multiplayer') {
-      socket.emit('join-room', { roomId: targetRoomId });
+    socket.on('room-updated', (roomState: { players?: { w?: { name: string }; b?: { name: string } } }) => {
+      const hasBlack = !!roomState.players?.b;
+      const hasWhite = !!roomState.players?.w;
+      const isReady = hasBlack && hasWhite;
+      const { myColor } = get();
+      set({
+        isOpponentConnected: isReady,
+        gameStatus: isReady ? 'playing' : 'waiting',
+        isTimerRunning: isReady,
+        opponentName: myColor === 'w'
+          ? (roomState.players?.b?.name ?? 'Convidado')
+          : (roomState.players?.w?.name ?? 'Criador'),
+      });
+    });
 
-      socket.on('room-joined', ({ myColor, roomState }: any) => {
-        set({
-          myColor,
-          whiteTime: roomState.whiteTime || 600,
-          blackTime: roomState.blackTime || 600
-        });
+    // Server is now authoritative — trust the FEN that comes from move-made
+    socket.on('move-made', ({
+      fen, turn, lastMove, inCheck, endStatus, winner
+    }: {
+      fen: string;
+      turn: PlayerColor;
+      lastMove: { from: Square; to: Square };
+      inCheck: boolean;
+      endStatus: GameStatus | null;
+      winner: PlayerColor | 'draw' | null;
+    }) => {
+      const { chess } = get();
+      chess.load(fen);
+
+      set({
+        fen,
+        turn,
+        lastMove,
+        selectedSquare: null,
+        legalMoves: [],
       });
 
-      socket.on('room-updated', (roomState: any) => {
-        const hasBlack = !!roomState.players?.b;
-        const hasWhite = !!roomState.players?.w;
-        const isReady = hasBlack && hasWhite;
-
-        set({
-          isOpponentConnected: isReady,
-          gameStatus: isReady ? 'playing' : 'waiting',
-          isTimerRunning: isReady,
-          opponentName: get().myColor === 'w' 
-            ? (roomState.players?.b?.name || 'Convidado')
-            : (roomState.players?.w?.name || 'Criador')
-        });
-      });
-
-      socket.on('move-made', ({ from, to, fen, san, turn, history, lastMove }: any) => {
-        const { chess, myColor } = get();
-        chess.load(fen);
-
-        set({
-          fen,
-          turn,
-          lastMove,
-          selectedSquare: null,
-          legalMoves: []
-        });
-
-        // Play appropriate sound
-        if (chess.inCheck()) {
-          sound.playCheckSound();
-        } else if (lastMove) {
-          sound.playMoveSound();
-        }
-
-        // Check for game end
-        if (chess.isCheckmate()) {
-          const winningColor = chess.turn() === 'w' ? 'b' : 'w';
-          set({ gameStatus: 'checkmate', winner: winningColor, isTimerRunning: false });
-          sound.playCheckmateSound();
-          if (winningColor === myColor) {
-            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-          }
-        } else if (chess.isDraw() || chess.isStalemate()) {
-          set({ gameStatus: 'draw', winner: 'draw', isTimerRunning: false });
-        }
-      });
-
-      socket.on('reaction-received', (reaction: Reaction) => {
-        set((state) => ({
-          reactions: [...state.reactions.slice(-10), reaction]
-        }));
-        sound.playReactionSound();
-      });
-
-      socket.on('rematch-started', (roomState: any) => {
-        const chess = new Chess();
-        set({
-          chess,
-          fen: chess.fen(),
-          turn: 'w',
-          selectedSquare: null,
-          legalMoves: [],
-          lastMove: null,
-          history: [],
-          gameStatus: 'playing',
-          winner: null,
-          whiteTime: 600,
-          blackTime: 600,
-          isTimerRunning: true
-        });
-      });
-
-      socket.on('game-resigned', ({ winner }: any) => {
-        set({ gameStatus: 'checkmate', winner, isTimerRunning: false });
+      if (endStatus) {
+        set({ gameStatus: endStatus, winner, isTimerRunning: false });
         sound.playCheckmateSound();
-      });
+        if (winner === get().myColor) {
+          confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+        }
+      } else if (inCheck) {
+        sound.playCheckSound();
+      } else {
+        sound.playMoveSound();
+      }
+    });
 
-      socket.on('player-disconnected', () => {
-        set({ isOpponentConnected: false, gameStatus: 'waiting', isTimerRunning: false });
+    socket.on('reaction-received', (reaction: Reaction) => {
+      set((state) => ({
+        reactions: [...state.reactions.slice(-MAX_REACTIONS), { ...reaction, createdAt: Date.now() }],
+      }));
+      sound.playReactionSound();
+    });
+
+    socket.on('rematch-started', () => {
+      const newChess = new Chess();
+      set({
+        chess: newChess,
+        fen: newChess.fen(),
+        turn: 'w',
+        selectedSquare: null,
+        legalMoves: [],
+        lastMove: null,
+        history: [],
+        gameStatus: 'playing',
+        winner: null,
+        whiteTime: DEFAULT_TIME,
+        blackTime: DEFAULT_TIME,
+        isTimerRunning: true,
       });
-    }
+    });
+
+    socket.on('game-resigned', ({ winner }: { winner: PlayerColor }) => {
+      set({ gameStatus: 'checkmate', winner, isTimerRunning: false });
+      sound.playCheckmateSound();
+    });
+
+    socket.on('player-disconnected', () => {
+      set({ isOpponentConnected: false, gameStatus: 'waiting', isTimerRunning: false });
+    });
   },
 
-  selectSquare: (square: Square | null) => {
+  // ── selectSquare ────────────────────────────────────────────────────────────
+  selectSquare: (square) => {
     const { chess, turn, myColor, gameMode, gameStatus, selectedSquare } = get();
-
     if (gameStatus !== 'playing') return;
-
-    // Check if it's my turn in multiplayer
     if (gameMode === 'multiplayer' && turn !== myColor) return;
 
     if (!square) {
@@ -238,7 +269,6 @@ export const useChessStore = create<ChessStore>((set, get) => ({
       return;
     }
 
-    // If a square is already selected and clicked on a target square, attempt move
     if (selectedSquare) {
       if (selectedSquare === square) {
         set({ selectedSquare: null, legalMoves: [] });
@@ -246,10 +276,9 @@ export const useChessStore = create<ChessStore>((set, get) => ({
       }
 
       const moves = chess.moves({ square: selectedSquare, verbose: true });
-      const targetMove = moves.find((m) => m.to === square);
-
-      if (targetMove) {
-        if (targetMove.promotion) {
+      const target = moves.find((m) => m.to === square);
+      if (target) {
+        if (target.promotion) {
           set({ pendingPromotion: { from: selectedSquare, to: square } });
         } else {
           get().makeMove(selectedSquare, square);
@@ -258,11 +287,11 @@ export const useChessStore = create<ChessStore>((set, get) => ({
       }
     }
 
-    // Select piece if it belongs to current player turn
     const piece = chess.get(square);
     if (piece && piece.color === turn) {
-      const moves = chess.moves({ square, verbose: true });
-      const legalMoves = moves.map((m) => m.to as Square);
+      const legalMoves = chess
+        .moves({ square, verbose: true })
+        .map((m) => m.to as Square);
       set({ selectedSquare: square, legalMoves });
       sound.playSelectSound();
     } else {
@@ -270,23 +299,22 @@ export const useChessStore = create<ChessStore>((set, get) => ({
     }
   },
 
-  setHoveredSquare: (square: Square | null) => {
-    set({ hoveredSquare: square });
-  },
+  // ── setHoveredSquare ─────────────────────────────────────────────────────────
+  setHoveredSquare: (hoveredSquare) => set({ hoveredSquare }),
 
-  makeMove: (from: Square, to: Square, promotion = 'q') => {
+  // ── makeMove ─────────────────────────────────────────────────────────────────
+  makeMove: (from, to, promotion = 'q') => {
     const { chess, gameMode, roomId, socket, myColor } = get();
 
     try {
       const pieceOnTarget = chess.get(to);
       const move = chess.move({ from, to, promotion });
-
       if (!move) return false;
 
-      const newFen = chess.fen();
+      const newFen  = chess.fen();
       const newTurn = chess.turn() as PlayerColor;
 
-      // Play sound
+      // Sound feedback
       if (chess.inCheck()) {
         sound.playCheckSound();
       } else if (pieceOnTarget || move.captured) {
@@ -295,29 +323,17 @@ export const useChessStore = create<ChessStore>((set, get) => ({
         sound.playMoveSound();
       }
 
-      // Check end game
-      let newStatus: GameStatus = 'playing';
-      let winner: PlayerColor | 'draw' | null = null;
-
-      if (chess.isCheckmate()) {
-        newStatus = 'checkmate';
-        winner = myColor;
-        sound.playCheckmateSound();
-        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-      } else if (chess.isDraw() || chess.isStalemate()) {
-        newStatus = 'draw';
-        winner = 'draw';
-      }
+      // End-of-game detection — single source via resolveGameEnd
+      const end = resolveGameEnd(chess, myColor);
 
       const moveRecord: MoveLog = {
-        from,
-        to,
+        from, to,
         piece: move.piece,
         captured: move.captured,
         san: move.san,
         fen: newFen,
         timestamp: Date.now(),
-        player: move.color as PlayerColor
+        player: move.color as PlayerColor,
       };
 
       set((state) => ({
@@ -327,55 +343,64 @@ export const useChessStore = create<ChessStore>((set, get) => ({
         legalMoves: [],
         lastMove: { from, to },
         history: [...state.history, moveRecord],
-        gameStatus: newStatus,
-        winner
+        gameStatus: end ? end.status : 'playing',
+        winner: end ? end.winner : null,
+        ...(end ? { isTimerRunning: false } : {}),
       }));
 
-      // If multiplayer, emit to socket
+      if (end) {
+        sound.playCheckmateSound();
+        confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      }
+
       if (gameMode === 'multiplayer' && socket) {
-        socket.emit('make-move', {
-          roomId,
-          from,
-          to,
-          promotion,
-          fen: newFen,
-          san: move.san,
-          moveObj: move
-        });
+        socket.emit('make-move', { roomId, from, to, promotion });
       }
 
       return true;
-    } catch (e) {
-      console.error('Invalid move:', e);
+    } catch {
       return false;
     }
   },
 
-  setThemeMode: (themeMode) => set({ themeMode }),
+  // ── setPendingPromotion ──────────────────────────────────────────────────────
+  setPendingPromotion: (pendingPromotion) => set({ pendingPromotion }),
+
+  // ── toggleSound ──────────────────────────────────────────────────────────────
   toggleSound: () => {
     const isMuted = !get().isSoundMuted;
     sound.muted = isMuted;
     set({ isSoundMuted: isMuted });
   },
 
+  // ── sendReaction ─────────────────────────────────────────────────────────────
   sendReaction: (emoji) => {
     const { socket, roomId, myColor } = get();
-    const newReaction: Reaction = { id: Math.random(), emoji, senderColor: myColor };
-
+    const newReaction: Reaction = {
+      id: crypto.randomUUID(),
+      emoji,
+      senderColor: myColor,
+      createdAt: Date.now(),
+    };
     set((state) => ({
-      reactions: [...state.reactions.slice(-10), newReaction]
+      reactions: [...state.reactions.slice(-MAX_REACTIONS), newReaction],
     }));
     sound.playReactionSound();
-
-    if (socket) {
-      socket.emit('send-reaction', { roomId, emoji, senderColor: myColor });
-    }
+    socket?.emit('send-reaction', { roomId, emoji, senderColor: myColor });
   },
 
-  setGameMode: (mode) => {
-    get().initGame(mode);
+  // ── expireReactions ──────────────────────────────────────────────────────────
+  expireReactions: () => {
+    const cutoff = Date.now() - REACTION_TTL_MS;
+    set((state) => ({
+      reactions: state.reactions.filter((r) => r.createdAt > cutoff),
+    }));
   },
 
+  // ── setGameMode ──────────────────────────────────────────────────────────────
+  setGameMode: (mode) => get().initGame(mode),
+
+  // ── requestRematch ───────────────────────────────────────────────────────────
   requestRematch: () => {
     const { socket, roomId, gameMode } = get();
     if (gameMode === 'multiplayer' && socket) {
@@ -385,21 +410,18 @@ export const useChessStore = create<ChessStore>((set, get) => ({
     }
   },
 
+  // ── resignGame ───────────────────────────────────────────────────────────────
   resignGame: () => {
     const { socket, roomId, myColor, gameMode } = get();
-    const winner = myColor === 'w' ? 'b' : 'w';
-    set({
-      gameStatus: 'checkmate',
-      winner,
-      isTimerRunning: false
-    });
+    const winner: PlayerColor = myColor === 'w' ? 'b' : 'w';
+    set({ gameStatus: 'checkmate', winner, isTimerRunning: false });
     sound.playCheckmateSound();
-
     if (gameMode === 'multiplayer' && socket) {
       socket.emit('resign', { roomId, resigningColor: myColor });
     }
   },
 
+  // ── updateClocks ─────────────────────────────────────────────────────────────
   updateClocks: () => {
     const { isTimerRunning, turn, whiteTime, blackTime, gameStatus } = get();
     if (!isTimerRunning || gameStatus !== 'playing') return;
@@ -421,11 +443,12 @@ export const useChessStore = create<ChessStore>((set, get) => ({
     }
   },
 
+  // ── resetGame ────────────────────────────────────────────────────────────────
   resetGame: () => {
-    const chess = new Chess();
+    const newChess = new Chess();
     set({
-      chess,
-      fen: chess.fen(),
+      chess: newChess,
+      fen: newChess.fen(),
       turn: 'w',
       selectedSquare: null,
       legalMoves: [],
@@ -433,10 +456,9 @@ export const useChessStore = create<ChessStore>((set, get) => ({
       history: [],
       gameStatus: 'playing',
       winner: null,
-      whiteTime: 600,
-      blackTime: 600,
-      isTimerRunning: true
+      whiteTime: DEFAULT_TIME,
+      blackTime: DEFAULT_TIME,
+      isTimerRunning: true,
     });
-  }
+  },
 }));
-

@@ -4,72 +4,145 @@ import path from "path";
 import { Server, Socket } from "socket.io";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
+import { Chess } from "chess.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Color = 'w' | 'b';
+type GameStatus = 'waiting' | 'playing' | 'checkmate' | 'draw' | 'stalemate' | 'timeout';
+
 interface Player {
   id: string;
-  color: 'w' | 'b';
+  color: Color;
   name: string;
 }
 
 interface RoomData {
   id: string;
   fen: string;
-  history: any[];
-  turn: 'w' | 'b';
-  players: {
-    w?: Player;
-    b?: Player;
-  };
-  timeLimit: number; // in seconds, e.g. 600 for 10m
+  history: MoveRecord[];
+  turn: Color;
+  players: { w?: Player; b?: Player };
+  timeLimit: number;
   whiteTime: number;
   blackTime: number;
   timerStarted: boolean;
-  lastMoveTimestamp?: number;
-  status: 'waiting' | 'playing' | 'checkmate' | 'draw' | 'stalemate' | 'timeout';
+  lastActivity: number;
+  status: GameStatus;
 }
 
+interface MoveRecord {
+  from: string;
+  to: string;
+  promotion?: string;
+  san: string;
+  timestamp: number;
+}
+
+// Socket.IO event payloads
+interface JoinRoomPayload  { roomId: string; playerName?: string }
+interface MakeMovePayload  { roomId: string; from: string; to: string; promotion?: string }
+interface ReactionPayload  { roomId: string; emoji: string; senderColor: Color }
+interface RematchPayload   { roomId: string }
+interface ResignPayload    { roomId: string; resigningColor: Color }
+interface GameOverPayload  { roomId: string; status: GameStatus; winner?: Color | 'draw' }
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const INITIAL_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const DEFAULT_TIME_LIMIT = 600; // 10 minutes
+const ROOM_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+const ROOM_CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // every 5 minutes
+
+// ─── State ────────────────────────────────────────────────────────────────────
+
 const rooms = new Map<string, RoomData>();
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function createRoom(roomId: string): RoomData {
+  return {
+    id: roomId,
+    fen: INITIAL_FEN,
+    history: [],
+    turn: 'w',
+    players: {},
+    timeLimit: DEFAULT_TIME_LIMIT,
+    whiteTime: DEFAULT_TIME_LIMIT,
+    blackTime: DEFAULT_TIME_LIMIT,
+    timerStarted: false,
+    lastActivity: Date.now(),
+    status: 'waiting',
+  };
+}
+
+/** Periodically remove rooms that have been inactive for ROOM_TTL_MS */
+function startRoomCleanup(): void {
+  setInterval(() => {
+    const now = Date.now();
+    let cleaned = 0;
+    rooms.forEach((room, id) => {
+      if (now - room.lastActivity > ROOM_TTL_MS) {
+        rooms.delete(id);
+        cleaned++;
+      }
+    });
+    if (cleaned > 0) {
+      console.log(`[cleanup] Removed ${cleaned} stale room(s). Active: ${rooms.size}`);
+    }
+  }, ROOM_CLEANUP_INTERVAL_MS);
+}
+
+// ─── Server bootstrap ─────────────────────────────────────────────────────────
 
 async function startServer() {
   const app = express();
   const server = http.createServer(app);
+
+  const allowedOrigin = process.env.ALLOWED_ORIGIN ?? "*";
+
   const io = new Server(server, {
     cors: {
-      origin: "*",
-      methods: ["GET", "POST"]
-    }
+      origin: allowedOrigin,
+      methods: ["GET", "POST"],
+    },
   });
 
   const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json());
 
-  // Health check endpoint
+  // ── REST: Health ────────────────────────────────────────────────────────────
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", activeRooms: rooms.size });
   });
 
-  // Gemini AI Coach Hint Endpoint
+  // ── REST: Gemini AI Coach ───────────────────────────────────────────────────
   app.post("/api/ai-hint", async (req, res) => {
     try {
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
-        return res.status(500).json({
-          error: "GEMINI_API_KEY não configurada no servidor."
-        });
+        res.status(500).json({ error: "GEMINI_API_KEY não configurada no servidor." });
+        return;
       }
 
-      const { fen, turn, history, difficulty } = req.body;
+      const { fen, turn, history, difficulty } = req.body as {
+        fen: string;
+        turn: Color;
+        history: MoveRecord[];
+        difficulty?: string;
+      };
+
       const ai = new GoogleGenAI({ apiKey });
 
-      const prompt = `És um Grande Mestre de Xadrez e treinador tático. 
+      const prompt = `És um Grande Mestre de Xadrez e treinador tático.
 Analisa a seguinte posição no formato FEN: "${fen}".
-É a vez das ${turn === 'w' ? 'Brancas (Brancas a jogar)' : 'Pretas (Pretas a jogar)'}.
-Histórico de jogadas recentes: ${JSON.stringify(history?.slice(-6) || [])}.
-Nível do jogador: ${difficulty || 'intermédio'}.
+É a vez das ${turn === 'w' ? 'Brancas' : 'Pretas'}.
+Histórico de jogadas recentes: ${JSON.stringify(history?.slice(-6) ?? [])}.
+Nível do jogador: ${difficulty ?? 'intermédio'}.
 
 Fornece uma análise em PORTUGUÊS com a seguinte estrutura em formato JSON estrito:
 {
@@ -82,53 +155,41 @@ Fornece uma análise em PORTUGUÊS com a seguinte estrutura em formato JSON estr
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,
-        config: {
-          responseMimeType: "application/json"
-        }
+        config: { responseMimeType: "application/json" },
       });
 
-      const text = response.text || "{}";
-      const analysis = JSON.parse(text);
+      const analysis = JSON.parse(response.text ?? "{}");
       res.json(analysis);
-    } catch (err: any) {
-      console.error("AI Hint Error:", err);
-      res.status(500).json({ error: err.message || "Erro ao consultar o Mestre AI." });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao consultar o Mestre AI.";
+      console.error("[ai-hint]", message);
+      res.status(500).json({ error: message });
     }
   });
 
-  // Socket.IO Real-Time Management
+  // ── Socket.IO ───────────────────────────────────────────────────────────────
   io.on("connection", (socket: Socket) => {
     let currentRoomId: string | null = null;
 
-    socket.on("join-room", ({ roomId, playerName }: { roomId: string; playerName?: string }) => {
+    // ── join-room ─────────────────────────────────────────────────────────────
+    socket.on("join-room", ({ roomId, playerName }: JoinRoomPayload) => {
+      if (!roomId || typeof roomId !== 'string' || roomId.length > 32) return;
+
       currentRoomId = roomId;
       socket.join(roomId);
 
-      let room = rooms.get(roomId);
-      if (!room) {
-        room = {
-          id: roomId,
-          fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-          history: [],
-          turn: 'w',
-          players: {},
-          timeLimit: 600,
-          whiteTime: 600,
-          blackTime: 600,
-          timerStarted: false,
-          status: 'waiting'
-        };
-        rooms.set(roomId, room);
-      }
+      let room = rooms.get(roomId) ?? createRoom(roomId);
+      rooms.set(roomId, room);
+      room.lastActivity = Date.now();
 
-      // Assign color
-      let assignedColor: 'w' | 'b' = 'w';
+      // Assign color deterministically
+      let assignedColor: Color = 'w';
       if (!room.players.w) {
         assignedColor = 'w';
-        room.players.w = { id: socket.id, color: 'w', name: playerName || 'Jogador 1 (Criador)' };
+        room.players.w = { id: socket.id, color: 'w', name: playerName ?? 'Criador' };
       } else if (!room.players.b && room.players.w.id !== socket.id) {
         assignedColor = 'b';
-        room.players.b = { id: socket.id, color: 'b', name: playerName || 'Convidado (Jogador 2)' };
+        room.players.b = { id: socket.id, color: 'b', name: playerName ?? 'Convidado' };
         room.status = 'playing';
       } else if (room.players.w.id === socket.id) {
         assignedColor = 'w';
@@ -136,100 +197,147 @@ Fornece uma análise em PORTUGUÊS com a seguinte estrutura em formato JSON estr
         assignedColor = 'b';
       }
 
-      // Emit room initialization to the connecting client
-      socket.emit("room-joined", {
-        roomId,
-        myColor: assignedColor,
-        roomState: room
-      });
-
-      // Broadcast room update to everyone in the room
+      socket.emit("room-joined", { roomId, myColor: assignedColor, roomState: room });
       io.to(roomId).emit("room-updated", room);
     });
 
-    socket.on("make-move", ({ roomId, from, to, promotion, fen, san, moveObj }: any) => {
+    // ── make-move (server-authoritative validation) ───────────────────────────
+    socket.on("make-move", ({ roomId, from, to, promotion }: MakeMovePayload) => {
       const room = rooms.get(roomId);
-      if (!room) return;
+      if (!room || room.status !== 'playing') return;
 
-      room.fen = fen;
-      room.turn = room.turn === 'w' ? 'b' : 'w';
-      room.history.push({ from, to, promotion, san, moveObj, timestamp: Date.now() });
+      // Verify it's the correct player's turn
+      const movingPlayer =
+        room.turn === 'w' ? room.players.w : room.players.b;
+      if (movingPlayer?.id !== socket.id) return;
 
-      if (!room.timerStarted && room.players.w && room.players.b) {
-        room.timerStarted = true;
+      // Validate move on the server using chess.js
+      const chess = new Chess(room.fen);
+      let move;
+      try {
+        move = chess.move({ from, to, promotion: promotion ?? 'q' });
+      } catch {
+        // Illegal move — silently ignore
+        return;
+      }
+      if (!move) return;
+
+      const newFen = chess.fen();
+      room.fen = newFen;
+      room.turn = chess.turn() as Color;
+      room.lastActivity = Date.now();
+
+      const record: MoveRecord = {
+        from,
+        to,
+        promotion,
+        san: move.san,
+        timestamp: Date.now(),
+      };
+      room.history.push(record);
+
+      // Detect end-of-game
+      let endStatus: GameStatus | null = null;
+      let winner: Color | 'draw' | null = null;
+
+      if (chess.isCheckmate()) {
+        endStatus = 'checkmate';
+        winner = move.color as Color; // the player who just moved wins
+        room.status = 'checkmate';
+      } else if (chess.isDraw()) {
+        endStatus = 'draw';
+        winner = 'draw';
+        room.status = 'draw';
+      } else if (chess.isStalemate()) {
+        endStatus = 'stalemate';
+        winner = 'draw';
+        room.status = 'stalemate';
       }
 
-      // Broadcast move to other player and room
+      // Broadcast authoritative move to both players
       io.to(roomId).emit("move-made", {
         from,
         to,
         promotion,
-        fen,
-        san,
+        fen: newFen,
+        san: move.san,
         turn: room.turn,
         history: room.history,
-        lastMove: { from, to }
+        lastMove: { from, to },
+        inCheck: chess.inCheck(),
+        endStatus,
+        winner,
       });
     });
 
-    socket.on("send-reaction", ({ roomId, emoji, senderColor }: { roomId: string; emoji: string; senderColor: 'w' | 'b' }) => {
-      io.to(roomId).emit("reaction-received", { emoji, senderColor, id: Math.random() });
+    // ── send-reaction (broadcast to opponent only, preventing duplicate local reaction) ──
+    socket.on("send-reaction", ({ roomId, emoji, senderColor }: ReactionPayload) => {
+      if (typeof emoji !== 'string' || emoji.length > 8) return;
+      socket.to(roomId).emit("reaction-received", {
+        emoji,
+        senderColor,
+        id: crypto.randomUUID(),
+      });
     });
 
-    socket.on("request-rematch", ({ roomId }: { roomId: string }) => {
+    // ── request-rematch ───────────────────────────────────────────────────────
+    socket.on("request-rematch", ({ roomId }: RematchPayload) => {
       const room = rooms.get(roomId);
       if (!room) return;
 
-      // Reset room state for new game
-      room.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+      room.fen = INITIAL_FEN;
       room.history = [];
       room.turn = 'w';
       room.whiteTime = room.timeLimit;
       room.blackTime = room.timeLimit;
       room.status = 'playing';
+      room.timerStarted = false;
+      room.lastActivity = Date.now();
 
       io.to(roomId).emit("rematch-started", room);
     });
 
-    socket.on("resign", ({ roomId, resigningColor }: { roomId: string; resigningColor: 'w' | 'b' }) => {
+    // ── resign ────────────────────────────────────────────────────────────────
+    socket.on("resign", ({ roomId, resigningColor }: ResignPayload) => {
       const room = rooms.get(roomId);
-      const winner = resigningColor === 'w' ? 'b' : 'w';
+      const winner: Color = resigningColor === 'w' ? 'b' : 'w';
       if (room) {
         room.status = 'checkmate';
+        room.lastActivity = Date.now();
       }
       io.to(roomId).emit("game-resigned", { winner, resigningColor });
     });
 
-    socket.on("game-over", ({ roomId, status, winner }: { roomId: string; status: string; winner?: 'w' | 'b' | 'draw' }) => {
+    // ── game-over (client-initiated, e.g. draw agreement) ────────────────────
+    socket.on("game-over", ({ roomId, status, winner }: GameOverPayload) => {
       const room = rooms.get(roomId);
       if (room) {
-        room.status = status as any;
+        room.status = status;
+        room.lastActivity = Date.now();
       }
       io.to(roomId).emit("game-ended", { status, winner });
     });
 
+    // ── disconnect ────────────────────────────────────────────────────────────
     socket.on("disconnect", () => {
-      if (currentRoomId) {
-        const room = rooms.get(currentRoomId);
-        if (room) {
-          if (room.players.w?.id === socket.id) {
-            delete room.players.w;
-          }
-          if (room.players.b?.id === socket.id) {
-            delete room.players.b;
-          }
-          if (!room.players.w && !room.players.b) {
-            rooms.delete(currentRoomId);
-          } else {
-            room.status = 'waiting';
-            io.to(currentRoomId).emit("player-disconnected", { room });
-          }
-        }
+      if (!currentRoomId) return;
+      const room = rooms.get(currentRoomId);
+      if (!room) return;
+
+      if (room.players.w?.id === socket.id) delete room.players.w;
+      if (room.players.b?.id === socket.id) delete room.players.b;
+
+      if (!room.players.w && !room.players.b) {
+        rooms.delete(currentRoomId);
+      } else {
+        room.status = 'waiting';
+        room.lastActivity = Date.now();
+        io.to(currentRoomId).emit("player-disconnected", { room });
       }
     });
   });
 
-  // Vite Middleware in dev, Static Files in production
+  // ── Static / Vite middleware ─────────────────────────────────────────────────
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -244,8 +352,12 @@ Fornece uma análise em PORTUGUÊS com a seguinte estrutura em formato JSON estr
     });
   }
 
+  startRoomCleanup();
+
   server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server listening on http://0.0.0.0:${PORT}`);
+    console.log(`[server] Listening on http://0.0.0.0:${PORT}`);
+    console.log(`[server] CORS origin: ${allowedOrigin}`);
+    console.log(`[server] Room TTL: ${ROOM_TTL_MS / 60000}min | Cleanup: ${ROOM_CLEANUP_INTERVAL_MS / 60000}min`);
   });
 }
 

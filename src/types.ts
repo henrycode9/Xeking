@@ -1,8 +1,7 @@
-export type GameMode = 'multiplayer' | 'pass-and-play';
+export type GameMode    = 'multiplayer' | 'pass-and-play';
 export type PlayerColor = 'w' | 'b';
-export type PieceType = 'p' | 'r' | 'n' | 'b' | 'q' | 'k';
-export type GameStatus = 'waiting' | 'playing' | 'check' | 'checkmate' | 'draw' | 'stalemate' | 'timeout';
-export type ThemeMode = 'pro-light';
+export type PieceType   = 'p' | 'r' | 'n' | 'b' | 'q' | 'k';
+export type GameStatus  = 'waiting' | 'playing' | 'checkmate' | 'draw' | 'stalemate' | 'timeout';
 
 export interface MoveLog {
   from: string;
@@ -23,8 +22,9 @@ export interface PlayerInfo {
 }
 
 export interface Reaction {
-  id: number;
+  id: string; // crypto.randomUUID()
   emoji: string;
   senderColor: PlayerColor;
+  /** Unix ms – used for auto-expiry */
+  createdAt: number;
 }
-

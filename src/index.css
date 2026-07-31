@@ -1,40 +1,89 @@
+/* ── Fonts ───────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Permanent+Marker&family=Sedgwick+Ave&display=swap');
+
 @import "tailwindcss";
 
+/* ── Utilities ───────────────────────────────────────────────────────────── */
 @layer utilities {
   .font-pro {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  }
+
+  .font-graffiti {
+    font-family: 'Permanent Marker', 'Sedgwick Ave', cursive, sans-serif;
   }
 }
 
-/* Single Professional Light Theme (Clean, High-End Studio) */
-.theme-pro-light {
-  background: radial-gradient(circle at 50% 0%, #f8fafc 0%, #f1f5f9 60%, #e2e8f0 100%);
-  color: #0f172a;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+/* ── Aesthetic Animations ────────────────────────────────────────────────── */
+@keyframes appleFadeIn {
+  from { opacity: 0; transform: scale(0.98) translateY(2px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-.pro-card {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03);
+.animate-fadeIn {
+  animation: appleFadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.pro-button {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #0f172a;
-  border-radius: 14px;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+/* ── Rich Floating Reaction Physics Animation ───────────────────────────── */
+@keyframes floatReactionUp {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.4) rotate(-12deg);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0px) scale(1.25) rotate(4deg);
+  }
+  30% {
+    transform: translateY(-30px) scale(1) rotate(-4deg);
+  }
+  75% {
+    opacity: 1;
+    transform: translateY(-130px) scale(0.95) rotate(6deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-180px) scale(0.7) rotate(-8deg);
+  }
 }
-.pro-button:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+
+.animate-reaction-float {
+  animation: floatReactionUp 2.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* ── Black & White High-Monochrome Palette ───────────────────────────────── */
+* {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
 
+body {
+  background-color: #f4f4f5; /* Zinc 100 - Ultra-clean light gray backdrop */
+  color: #09090b;            /* Zinc 950 - Deep black text */
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transform: translateZ(0);
+}
 
+/* Crisp Monochrome Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #a1a1aa;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #71717a;
+}

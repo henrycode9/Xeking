@@ -1,46 +1,52 @@
 import React from 'react';
 import { useChessStore } from '../store/useChessStore';
-import { Trophy, RotateCcw, Share2, Copy, Check, X } from 'lucide-react';
+import { Trophy, RotateCcw, Copy, Check } from 'lucide-react';
 
 export const GameOverModal: React.FC = () => {
-  const { gameStatus, winner, myColor, requestRematch, history, resetGame } = useChessStore();
+  const gameStatus    = useChessStore((s) => s.gameStatus);
+  const winner        = useChessStore((s) => s.winner);
+  const myColor       = useChessStore((s) => s.myColor);
+  const requestRematch = useChessStore((s) => s.requestRematch);
+  const history       = useChessStore((s) => s.history);
+
   const [copied, setCopied] = React.useState(false);
 
-  if (gameStatus !== 'checkmate' && gameStatus !== 'draw' && gameStatus !== 'stalemate' && gameStatus !== 'timeout') {
-    return null;
-  }
+  const isVisible =
+    gameStatus === 'checkmate' ||
+    gameStatus === 'draw'      ||
+    gameStatus === 'stalemate' ||
+    gameStatus === 'timeout';
+
+  if (!isVisible) return null;
 
   const isIWinner = winner === myColor;
 
   const copyPGN = () => {
-    const pgnText = history.map((m, i) => `${i % 2 === 0 ? `${Math.floor(i / 2) + 1}. ` : ''}${m.san}`).join(' ');
-    navigator.clipboard.writeText(pgnText);
+    const pgn = history
+      .map((m, i) => `${i % 2 === 0 ? `${Math.floor(i / 2) + 1}. ` : ''}${m.san}`)
+      .join(' ');
+    navigator.clipboard.writeText(pgn).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-2xl animate-fadeIn">
-      <div className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-slate-900 border border-white/10 shadow-2xl text-center overflow-hidden">
-        
-        {/* Glow background */}
-        <div className={`absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full blur-3xl pointer-events-none ${
-          isIWinner ? 'bg-amber-500/30' : 'bg-blue-600/20'
-        }`} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fadeIn">
+      <div className="relative w-full max-w-sm p-7 rounded-3xl bg-white border border-zinc-200 shadow-2xl text-center overflow-hidden">
 
         {/* Trophy Icon */}
-        <div className="flex justify-center mb-4">
-          <div className={`w-16 h-16 rounded-3xl border flex items-center justify-center shadow-2xl ${
+        <div className="flex justify-center mb-3.5">
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${
             isIWinner
-              ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 shadow-amber-500/20'
-              : 'bg-blue-600/20 text-blue-400 border-blue-500/40'
+              ? 'bg-zinc-950 text-white border border-zinc-950'
+              : 'bg-zinc-100 text-zinc-900 border border-zinc-300'
           }`}>
-            <Trophy className="w-8 h-8 animate-bounce" />
+            <Trophy className="w-7 h-7" />
           </div>
         </div>
 
         {/* Title */}
-        <h2 className="text-2xl font-black text-white tracking-tight">
+        <h2 className="text-xl font-black text-zinc-900 tracking-tight">
           {gameStatus === 'checkmate'
             ? isIWinner ? 'Vitória Gloriosa!' : 'Xeque-Mate!'
             : gameStatus === 'timeout'
@@ -48,7 +54,7 @@ export const GameOverModal: React.FC = () => {
             : 'Empate Técnico'}
         </h2>
 
-        <p className="mt-1 text-xs text-slate-300">
+        <p className="mt-1 text-xs text-zinc-500 font-medium">
           {gameStatus === 'checkmate'
             ? `Vencedor: ${winner === 'w' ? 'Brancas' : 'Pretas'}`
             : gameStatus === 'timeout'
@@ -56,11 +62,11 @@ export const GameOverModal: React.FC = () => {
             : 'O jogo terminou em empate.'}
         </p>
 
-        {/* Action Buttons */}
-        <div className="mt-6 space-y-3">
+        {/* Buttons */}
+        <div className="mt-6 space-y-2.5">
           <button
             onClick={requestRematch}
-            className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-blue-600/30 transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-2xl bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs shadow-md transition-all cursor-pointer active:scale-95"
           >
             <RotateCcw className="w-4 h-4" />
             <span>Revanche Instantânea</span>
@@ -68,9 +74,11 @@ export const GameOverModal: React.FC = () => {
 
           <button
             onClick={copyPGN}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-white/10 transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-semibold text-xs border border-zinc-300 transition-all cursor-pointer active:scale-95"
           >
-            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
+            {copied
+              ? <Check className="w-3.5 h-3.5 text-zinc-900" />
+              : <Copy  className="w-3.5 h-3.5 text-zinc-500" />}
             <span>{copied ? 'PGN Copiado!' : 'Copiar PGN da Partida'}</span>
           </button>
         </div>
