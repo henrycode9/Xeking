@@ -27,19 +27,22 @@
 /* ── Black & White High-Monochrome Palette ───────────────────────────────── */
 * {
   -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+}
+
+.touch-pan-y {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
   background-color: #f4f4f5; /* Zinc 100 - Ultra-clean light gray backdrop */
   color: #09090b;            /* Zinc 950 - Deep black text */
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
-  overflow: hidden;
+  overflow-x: hidden;
   user-select: none;
   -webkit-user-select: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transform: translateZ(0);
 }
 
 /* Crisp Monochrome Scrollbar */

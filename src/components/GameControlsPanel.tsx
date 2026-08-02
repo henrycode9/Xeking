@@ -57,7 +57,7 @@ export const GameControlsPanel: React.FC = () => {
   const inCheck = chess.inCheck();
 
   return (
-    <div className="w-full h-full flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl bg-white border border-zinc-200/80 text-zinc-900 min-h-0 overflow-hidden space-y-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+    <div className="w-full lg:h-full flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl bg-white border border-zinc-200/80 text-zinc-900 space-y-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)] shrink-0 touch-pan-y">
 
       {/* Status Header */}
       <div className="flex items-center justify-between p-2.5 px-3.5 rounded-xl bg-zinc-100 border border-zinc-200 shrink-0">
@@ -103,7 +103,7 @@ export const GameControlsPanel: React.FC = () => {
       </div>
 
       {/* Move Log */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-3 rounded-xl bg-zinc-50 border border-zinc-200 space-y-1 font-mono text-xs">
+      <div className="flex-1 min-h-[90px] max-h-[180px] lg:max-h-none overflow-y-auto touch-pan-y p-3 rounded-xl bg-zinc-50 border border-zinc-200 space-y-1 font-mono text-xs">
         <div className="flex items-center gap-1.5 text-zinc-600 font-sans text-xs font-bold pb-2 border-b border-zinc-200 sticky top-0 bg-zinc-50 z-10">
           <History className="w-3.5 h-3.5 text-zinc-700" />
           <span>Histórico</span>
