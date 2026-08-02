@@ -150,26 +150,47 @@ export const useChessStore = create<ChessStore>((set, get) => ({
 
     socket.emit('join-room', { roomId: targetRoomId });
 
-    socket.on('room-joined', ({ myColor, roomState }: { myColor: PlayerColor; roomState: { whiteTime: number; blackTime: number } }) => {
+    socket.on('room-joined', ({ myColor, roomState }: { myColor: PlayerColor; roomState: any }) => {
+      const { chess } = get();
+      if (roomState?.fen) {
+        chess.load(roomState.fen);
+      }
+      const hasBlack = !!roomState?.players?.b;
+      const hasWhite = !!roomState?.players?.w;
+      const isReady  = hasBlack && hasWhite;
       set({
         myColor,
-        whiteTime: roomState.whiteTime ?? DEFAULT_TIME,
-        blackTime: roomState.blackTime ?? DEFAULT_TIME,
+        fen: chess.fen(),
+        turn: chess.turn() as PlayerColor,
+        whiteTime: roomState?.whiteTime ?? DEFAULT_TIME,
+        blackTime: roomState?.blackTime ?? DEFAULT_TIME,
+        gameStatus: isReady ? 'playing' : (roomState?.status ?? 'waiting'),
+        isOpponentConnected: isReady,
+        isTimerRunning: isReady && roomState?.status === 'playing',
       });
     });
 
-    socket.on('room-updated', (roomState: { players?: { w?: { name: string }; b?: { name: string } } }) => {
-      const hasBlack = !!roomState.players?.b;
-      const hasWhite = !!roomState.players?.w;
-      const isReady = hasBlack && hasWhite;
-      const { myColor } = get();
+    socket.on('room-updated', (roomState: any) => {
+      const { chess, myColor } = get();
+      if (roomState?.fen && roomState.fen !== chess.fen()) {
+        chess.load(roomState.fen);
+      }
+      const hasBlack = !!roomState?.players?.b;
+      const hasWhite = !!roomState?.players?.w;
+      const isReady  = hasBlack && hasWhite;
+      const status   = isReady ? 'playing' : (roomState?.status ?? 'waiting');
+
       set({
+        fen: chess.fen(),
+        turn: chess.turn() as PlayerColor,
         isOpponentConnected: isReady,
-        gameStatus: isReady ? 'playing' : 'waiting',
-        isTimerRunning: isReady,
+        gameStatus: status,
+        isTimerRunning: isReady && status === 'playing',
+        whiteTime: roomState?.whiteTime ?? DEFAULT_TIME,
+        blackTime: roomState?.blackTime ?? DEFAULT_TIME,
         opponentName: myColor === 'w'
-          ? (roomState.players?.b?.name ?? 'Convidado')
-          : (roomState.players?.w?.name ?? 'Criador'),
+          ? (roomState?.players?.b?.name ?? 'Convidado')
+          : (roomState?.players?.w?.name ?? 'Criador'),
       });
     });
 

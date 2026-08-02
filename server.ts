@@ -181,19 +181,15 @@ Fornece uma análise em PORTUGUÊS com a seguinte estrutura em formato JSON estr
       rooms.set(roomId, room);
       room.lastActivity = Date.now();
 
-      // Assign color deterministically
+      // Assign color deterministically & handle mobile reconnection
       let assignedColor: Color = 'w';
-      if (!room.players.w) {
+      if (!room.players.w || room.players.w.id === socket.id) {
         assignedColor = 'w';
         room.players.w = { id: socket.id, color: 'w', name: playerName ?? 'Criador' };
-      } else if (!room.players.b && room.players.w.id !== socket.id) {
+      } else {
         assignedColor = 'b';
         room.players.b = { id: socket.id, color: 'b', name: playerName ?? 'Convidado' };
         room.status = 'playing';
-      } else if (room.players.w.id === socket.id) {
-        assignedColor = 'w';
-      } else if (room.players.b?.id === socket.id) {
-        assignedColor = 'b';
       }
 
       socket.emit("room-joined", { roomId, myColor: assignedColor, roomState: room });
@@ -328,9 +324,15 @@ Fornece uma análise em PORTUGUÊS com a seguinte estrutura em formato JSON estr
 
   // ── Static / Vite middleware ─────────────────────────────────────────────────
   const distPath = path.join(process.cwd(), "dist");
+  const publicPath = path.join(process.cwd(), "public");
   const hasDist = fs.existsSync(path.join(distPath, "index.html"));
 
-  if (hasDist && process.env.NODE_ENV === "production") {
+  // Explicitly serve static piece assets from public or dist
+  if (fs.existsSync(publicPath)) {
+    app.use("/pieces", express.static(path.join(publicPath, "pieces")));
+  }
+
+  if (hasDist) {
     app.use(express.static(distPath));
     app.get("*", (_req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
