@@ -69,7 +69,7 @@ export const GameOverModal: React.FC = () => {
             className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-2xl bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs shadow-md transition-all cursor-pointer active:scale-95"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>Revanche</span>
+            <span>Jogar novamente</span>
           </button>
 
           <button
