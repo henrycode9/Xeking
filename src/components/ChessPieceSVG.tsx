@@ -39,23 +39,40 @@ export const ChessPieceSVG: React.FC<ChessPieceSVGProps> = ({ type, color, class
           </g>
         );
 
-      case 'n': // Canonical Knight (Classic Cburnett Staunton Horse)
+      case 'n': // Sleek Equestrian Horse Knight (Long Slender Face, Sharp Pointed Ears, Arched Neck)
         return (
           <g fill={fill} stroke={stroke} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round">
-            {/* Main Horse Head & Body Silhouette */}
-            <path d="M 22 10 C 22.5 10 23 10.5 23 11.5 C 23 11.5 23 12 22.5 12.5 C 22.5 12.5 24.5 12 25.5 13.5 C 26.5 15 26.5 17 26 19 C 27 18 28.5 17 29 17 C 29.5 17 30 17.5 30 18 C 30 18.5 29 19.5 28 20.5 C 28.5 21.5 29 22.5 29 24 C 29 26.5 27.5 29 26.5 31 C 28 32 30 32 32.5 32 C 32.5 32 33 36 33 36 L 12 36 C 12 36 12.5 32 12.5 32 C 15 32 17 32 18.5 31 C 17.5 29 16 26.5 16 24 C 16 22.5 16.5 21.5 17 20.5 C 16 19.5 15 18.5 15 18 C 15 17.5 15.5 17 16 17 C 16.5 17 18 18 19 19 C 18.5 17 18.5 15 19.5 13.5 C 20.5 12 22.5 12.5 22.5 12.5 C 22 12 22 11.5 22 10 Z" />
+            {/* Horse Silhouette (Long Horse Snout, Sharp Pointed Ears, Arched Neck) */}
+            <path d="M 13.5 36.5
+                     C 15.5 31 16.5 27 17 24
+                     C 15 23.5 13 23 11.5 22.5
+                     C 10.5 22 10.5 20.5 11 19.5
+                     C 12.5 17.5 15.5 14.5 18 11.5
+                     C 18 9 19.5 7 21 6.5
+                     C 22.5 6 23.5 7.5 24 9
+                     C 25 7.5 26.5 7 28 7.5
+                     C 29.5 8.5 29.5 11 29 14.5
+                     C 31 18.5 32.5 24.5 32 36.5 Z" />
 
             {/* Base Step */}
-            <path d="M 10.5 40.5 L 34.5 40.5 L 33 36 L 12 36 Z" />
-            <path d="M 12 36 C 14 34 31 34 33 36 Z" />
+            <path d="M 10.5 40.5 L 34.5 40.5 L 33 36.5 L 12 36.5 Z" />
+            <path d="M 12 36.5 C 14 34.5 31 34.5 33 36.5 Z" />
 
-            {/* Eye Dot */}
-            <circle cx="20" cy="13.5" r="1.3" fill={detail} stroke="none" />
-            {/* Nostril Dot */}
-            <circle cx="15.5" cy="17.5" r="1" fill={detail} stroke="none" />
-            {/* Mane & Throat Accent Lines */}
-            <path d="M 24.5 15 C 26 17.5 26 20.5 24.5 23" stroke={detail} strokeWidth="1.2" fill="none" />
-            <path d="M 17.5 21 C 18.5 23 18.5 25.5 17.5 27.5" stroke={detail} strokeWidth="1.2" fill="none" />
+            {/* Eye */}
+            <circle cx="19.5" cy="12.5" r="1.3" fill={detail} stroke="none" />
+
+            {/* Nostril */}
+            <circle cx="13" cy="18.5" r="0.9" fill={detail} stroke="none" />
+
+            {/* Mouth / Snout Line */}
+            <path d="M 11.5 20 C 13 20.8 15 20.8 16 20.2" stroke={detail} strokeWidth="1.2" fill="none" />
+
+            {/* Mane Accent Waves */}
+            <path d="M 24 12 C 25.5 15 25.5 18 23.5 21" stroke={detail} strokeWidth="1.2" fill="none" />
+            <path d="M 26.5 17.5 C 28 20.5 28 23.5 26 26.5" stroke={detail} strokeWidth="1.2" fill="none" />
+
+            {/* Jawline Contour */}
+            <path d="M 18.5 19 C 20 17 21 15 21.5 13" stroke={detail} strokeWidth="1.2" fill="none" />
           </g>
         );
 
