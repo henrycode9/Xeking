@@ -186,9 +186,15 @@ Fornece uma análise em PORTUGUÊS com a seguinte estrutura em formato JSON estr
       if (!room.players.w || room.players.w.id === socket.id) {
         assignedColor = 'w';
         room.players.w = { id: socket.id, color: 'w', name: playerName ?? 'Criador' };
+      } else if (!room.players.b || room.players.b.id === socket.id) {
+        assignedColor = 'b';
+        room.players.b = { id: socket.id, color: 'b', name: playerName ?? 'Convidado' };
       } else {
         assignedColor = 'b';
         room.players.b = { id: socket.id, color: 'b', name: playerName ?? 'Convidado' };
+      }
+
+      if (room.players.w && room.players.b) {
         room.status = 'playing';
       }
 
@@ -315,7 +321,6 @@ Fornece uma análise em PORTUGUÊS com a seguinte estrutura em formato JSON estr
       if (!room.players.w && !room.players.b) {
         rooms.delete(currentRoomId);
       } else {
-        room.status = 'waiting';
         room.lastActivity = Date.now();
         io.to(currentRoomId).emit("player-disconnected", { room });
       }
