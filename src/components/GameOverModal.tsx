@@ -48,9 +48,9 @@ export const GameOverModal: React.FC = () => {
         {/* Title */}
         <h2 className="text-xl font-black text-zinc-900 tracking-tight">
           {gameStatus === 'checkmate'
-            ? isIWinner ? 'Vitória!' : 'Xeque-Mate!'
+            ? isIWinner ? 'Vitória' : 'Xeque-Mate'
             : gameStatus === 'timeout'
-            ? 'Tempo Esgotado!'
+            ? 'Tempo Esgotado'
             : 'Empate'}
         </h2>
 

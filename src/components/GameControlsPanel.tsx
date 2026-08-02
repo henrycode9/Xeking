@@ -65,9 +65,9 @@ export const GameControlsPanel: React.FC = () => {
           <div className={`w-2.5 h-2.5 rounded-full ${turn === 'w' ? 'bg-white border border-zinc-900' : 'bg-zinc-950'}`} />
           <span className="text-xs font-bold text-zinc-900">
             {gameStatus === 'checkmate'
-              ? 'Xeque-Mate!'
+              ? 'Xeque-Mate'
               : inCheck
-              ? '⚠️ Xeque!'
+              ? '⚠️ Xeque'
               : `Vez das ${turn === 'w' ? 'Brancas' : 'Pretas'}`}
           </span>
         </div>
