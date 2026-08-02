@@ -48,10 +48,10 @@ export const GameOverModal: React.FC = () => {
         {/* Title */}
         <h2 className="text-xl font-black text-zinc-900 tracking-tight">
           {gameStatus === 'checkmate'
-            ? isIWinner ? 'Vitória Gloriosa!' : 'Xeque-Mate!'
+            ? isIWinner ? 'Vitória!' : 'Xeque-Mate!'
             : gameStatus === 'timeout'
             ? 'Tempo Esgotado!'
-            : 'Empate Técnico'}
+            : 'Empate'}
         </h2>
 
         <p className="mt-1 text-xs text-zinc-500 font-medium">
@@ -69,7 +69,7 @@ export const GameOverModal: React.FC = () => {
             className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-2xl bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs shadow-md transition-all cursor-pointer active:scale-95"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>Revanche Instantânea</span>
+            <span>Revanche</span>
           </button>
 
           <button
@@ -79,7 +79,7 @@ export const GameOverModal: React.FC = () => {
             {copied
               ? <Check className="w-3.5 h-3.5 text-zinc-900" />
               : <Copy  className="w-3.5 h-3.5 text-zinc-500" />}
-            <span>{copied ? 'PGN Copiado!' : 'Copiar PGN da Partida'}</span>
+            <span>{copied ? 'PGN Copiado!' : 'Copiar PGN'}</span>
           </button>
         </div>
       </div>
