@@ -1,6 +1,6 @@
 import React from 'react';
 import { useChessStore } from '../store/useChessStore';
-import { Volume2, VolumeX, QrCode, Users, Gamepad2, Crown } from 'lucide-react';
+import { Volume2, VolumeX, QrCode, Crown } from 'lucide-react';
 
 interface HeaderUIProps {
   onOpenQRModal: () => void;
@@ -13,15 +13,13 @@ const formatTime = (seconds: number): string => {
 };
 
 export const HeaderUI: React.FC<HeaderUIProps> = ({ onOpenQRModal }) => {
-  const gameMode            = useChessStore((s) => s.gameMode);
-  const setGameMode         = useChessStore((s) => s.setGameMode);
-  const myColor             = useChessStore((s) => s.myColor);
-  const turn                = useChessStore((s) => s.turn);
-  const isSoundMuted        = useChessStore((s) => s.isSoundMuted);
-  const toggleSound         = useChessStore((s) => s.toggleSound);
-  const whiteTime           = useChessStore((s) => s.whiteTime);
-  const blackTime           = useChessStore((s) => s.blackTime);
-  const gameStatus          = useChessStore((s) => s.gameStatus);
+  const myColor      = useChessStore((s) => s.myColor);
+  const turn         = useChessStore((s) => s.turn);
+  const isSoundMuted = useChessStore((s) => s.isSoundMuted);
+  const toggleSound  = useChessStore((s) => s.toggleSound);
+  const whiteTime    = useChessStore((s) => s.whiteTime);
+  const blackTime    = useChessStore((s) => s.blackTime);
+  const gameStatus   = useChessStore((s) => s.gameStatus);
 
   return (
     <header className="w-full max-w-7xl mx-auto py-0.5 shrink-0 space-y-1.5 sm:space-y-2">
@@ -40,42 +38,14 @@ export const HeaderUI: React.FC<HeaderUIProps> = ({ onOpenQRModal }) => {
 
         {/* Controls */}
         <div className="flex items-center space-x-1.5 sm:space-x-2">
-          {/* Game Mode Switcher */}
-          <div className="flex items-center p-0.5 sm:p-1 rounded-xl bg-zinc-100 border border-zinc-200">
-            <button
-              onClick={() => setGameMode('multiplayer')}
-              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
-                gameMode === 'multiplayer'
-                  ? 'bg-zinc-950 text-white shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-950'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Multiplayer</span>
-            </button>
-            <button
-              onClick={() => setGameMode('pass-and-play')}
-              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
-                gameMode === 'pass-and-play'
-                  ? 'bg-zinc-950 text-white shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-950'
-              }`}
-            >
-              <Gamepad2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Local</span>
-            </button>
-          </div>
-
-          {/* QR Invite */}
-          {gameMode === 'multiplayer' && (
-            <button
-              onClick={onOpenQRModal}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95"
-            >
-              <QrCode className="w-3.5 h-3.5" />
-              <span className="hidden xs:inline sm:inline">Convidar</span>
-            </button>
-          )}
+          {/* QR Invite Button */}
+          <button
+            onClick={onOpenQRModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95"
+          >
+            <QrCode className="w-4 h-4" />
+            <span>Convidar Amigo</span>
+          </button>
 
           {/* Sound Toggle */}
           <button
@@ -105,9 +75,7 @@ export const HeaderUI: React.FC<HeaderUIProps> = ({ onOpenQRModal }) => {
             <div className="text-left">
               <p className="text-[11px] sm:text-xs font-bold leading-tight">Pretas</p>
               <p className="text-[9px] sm:text-[10px] opacity-70 leading-tight">
-                {gameMode === 'multiplayer'
-                  ? myColor === 'b' ? 'Você' : 'Oponente'
-                  : 'Jogador 2'}
+                {myColor === 'b' ? 'Você' : 'Oponente'}
               </p>
             </div>
           </div>
@@ -129,9 +97,7 @@ export const HeaderUI: React.FC<HeaderUIProps> = ({ onOpenQRModal }) => {
             <div className="text-left">
               <p className="text-[11px] sm:text-xs font-bold leading-tight">Brancas</p>
               <p className="text-[9px] sm:text-[10px] opacity-70 leading-tight">
-                {gameMode === 'multiplayer'
-                  ? myColor === 'w' ? 'Você' : 'Oponente'
-                  : 'Você'}
+                {myColor === 'w' ? 'Você' : 'Oponente'}
               </p>
             </div>
           </div>
@@ -143,3 +109,4 @@ export const HeaderUI: React.FC<HeaderUIProps> = ({ onOpenQRModal }) => {
     </header>
   );
 };
+

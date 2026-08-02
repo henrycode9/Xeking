@@ -136,7 +136,7 @@ export const GameControlsPanel: React.FC = () => {
 
       {/* Action Footer */}
       <div className="shrink-0 pt-0.5">
-        {gameMode === 'multiplayer' && gameStatus === 'playing' ? (
+        {gameStatus === 'playing' ? (
           <button
             onClick={resignGame}
             className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition-all cursor-pointer active:scale-95"

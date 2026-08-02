@@ -135,22 +135,16 @@ export const useChessStore = create<ChessStore>((set, get) => ({
       legalMoves: [] as Square[],
       lastMove: null,
       history: [] as MoveLog[],
-      gameMode: mode,
+      gameMode: 'multiplayer' as GameMode,
       roomId: targetRoomId,
-      gameStatus: (mode === 'multiplayer' ? 'waiting' : 'playing') as GameStatus,
+      gameStatus: 'waiting' as GameStatus,
       winner: null,
       whiteTime: DEFAULT_TIME,
       blackTime: DEFAULT_TIME,
       isOpponentConnected: false,
     };
 
-    // pass-and-play — no socket needed
-    if (mode === 'pass-and-play') {
-      set({ ...baseState, socket: null, myColor: 'w', isTimerRunning: true });
-      return;
-    }
-
-    // multiplayer — create socket
+    // multiplayer — create socket connection
     const socket = io({ autoConnect: true, reconnection: true });
     set({ ...baseState, socket, isTimerRunning: false });
 

@@ -1,4 +1,4 @@
-export type GameMode    = 'multiplayer' | 'pass-and-play';
+export type GameMode    = 'multiplayer';
 export type PlayerColor = 'w' | 'b';
 export type PieceType   = 'p' | 'r' | 'n' | 'b' | 'q' | 'k';
 export type GameStatus  = 'waiting' | 'playing' | 'checkmate' | 'draw' | 'stalemate' | 'timeout';
