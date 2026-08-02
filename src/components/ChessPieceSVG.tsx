@@ -8,8 +8,9 @@ interface ChessPieceSVGProps {
 }
 
 /**
- * Master-Grade Sculpted Vector Chess Piece Set
- * Pristine legibility, elegant proportions, crisp outlines, zero noise.
+ * Chess.com (Neo/Staunton Style) Master Vector Chess Piece Set
+ * Pristine legibility, iconic left-facing knight, elegant proportions, crisp outlines.
+ * Preserves current high-contrast black & white color palette.
  */
 export const ChessPieceSVG: React.FC<ChessPieceSVGProps> = ({ type, color, className = "w-full h-full" }) => {
   const isWhite = color === 'w';
@@ -21,104 +22,133 @@ export const ChessPieceSVG: React.FC<ChessPieceSVGProps> = ({ type, color, class
 
   const renderPaths = () => {
     switch (type) {
-      case 'p': // Master Pawn
+      case 'p': // Master Pawn (Chess.com / Staunton Neo Style)
         return (
-          <g fill={fill} stroke={stroke} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
-            {/* Double Base */}
-            <path d="M 11 40.5 L 34 40.5 L 32.5 37 L 12.5 37 Z" />
-            <path d="M 12.5 37 C 14 34.5, 31 34.5, 32.5 37 Z" />
+          <g fill={fill} stroke={stroke} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round">
+            {/* Base */}
+            <path d="M 11.5 40.5 L 33.5 40.5 L 32.5 37 L 12.5 37 Z" />
+            <path d="M 12.5 37 C 14 34.5 31 34.5 32.5 37 Z" />
             {/* Sculpted Waist Column */}
-            <path d="M 14.5 34.5 C 16.5 27, 28.5 27, 30.5 34.5 Z" />
-            {/* Collar Disk */}
-            <path d="M 16.5 20.5 L 28.5 20.5 L 27.5 18 L 17.5 18 Z" />
+            <path d="M 15 34.5 C 16.5 26.5 28.5 26.5 30 34.5 Z" />
+            {/* Collar Ring */}
+            <path d="M 16.5 21.5 C 16.5 19.5 28.5 19.5 28.5 21.5 C 28.5 23.5 16.5 23.5 16.5 21.5 Z" />
             {/* Spherical Head */}
-            <circle cx="22.5" cy="12.5" r="5.5" fill={fill} stroke={stroke} strokeWidth="1.6" />
+            <circle cx="22.5" cy="12.5" r="5.75" fill={fill} stroke={stroke} strokeWidth="1.5" />
           </g>
         );
 
-      case 'r': // Master Rook
+      case 'r': // Master Rook (Chess.com / Staunton Neo Style)
         return (
-          <g fill={fill} stroke={stroke} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
+          <g fill={fill} stroke={stroke} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round">
             {/* Base */}
             <path d="M 10.5 40.5 L 34.5 40.5 L 33 37 L 12 37 Z" />
-            <path d="M 12.5 37 C 14 34.5, 31 34.5, 32.5 37 Z" />
+            <path d="M 12.5 37 C 14 34.5 31 34.5 32.5 37 Z" />
             {/* Main Column */}
             <path d="M 14 34.5 L 15.5 17 L 29.5 17 L 31 34.5 Z" />
-            <line x1="13.5" y1="23" x2="31.5" y2="23" stroke={detail} strokeWidth="1.3" />
             {/* Battlements Crown */}
-            <path d="M 13 17 L 13 9.5 L 17 9.5 L 17 12.5 L 21 12.5 L 21 9.5 L 24 9.5 L 24 12.5 L 28 12.5 L 28 9.5 L 32 9.5 L 32 17 Z" />
+            <path d="M 12 17 L 12 9 L 16.5 9 L 16.5 12.5 L 20.5 12.5 L 20.5 9 L 24.5 9 L 24.5 12.5 L 28.5 12.5 L 28.5 9 L 33 9 L 33 17 Z" />
+            {/* Detail Line */}
+            <line x1="13.5" y1="22" x2="31.5" y2="22" stroke={detail} strokeWidth="1.3" />
           </g>
         );
 
-      case 'n': // Master Knight (Majestic, beautifully sculpted horse head)
+      case 'n': // Master Knight (Chess.com / Staunton Neo Style - Facing Left)
         return (
-          <g fill={fill} stroke={stroke} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
+          <g fill={fill} stroke={stroke} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round">
             {/* Base */}
             <path d="M 10.5 40.5 L 34.5 40.5 L 33 37 L 12 37 Z" />
-            <path d="M 12.5 37 C 14 34.5, 31 34.5, 32.5 37 Z" />
-            {/* Horse Body, Neck & Ears */}
-            <path d="M 13.5 34.5 C 13.5 29, 14.5 23.5, 16.5 19 C 17.5 16, 16.5 12.5, 17.5 10 C 19 7.5, 23 7, 27 7.5 C 28.5 8, 29 10, 29.5 13.5 C 30.5 18.5, 31.5 26.5, 31 34.5 Z" />
-            {/* Snout, Nostril & Muzzle Line */}
-            <path d="M 27 7.5 C 25 8.5, 22.5 10.5, 20.5 12 C 18.5 13.5, 17.5 15.5, 19.5 17.5 C 22 19, 25 18.5, 27.5 16.5 C 29 15, 29.5 13.5, 29.5 13.5 Z" />
+            <path d="M 12.5 37 C 14 34.5 31 34.5 32.5 37 Z" />
+
+            {/* Horse Head & Neck Body (Left-Facing Iconic Silhouette) */}
+            <path d="M 13.5 34.5
+                     C 13.5 31.5 14.5 28 16.5 25.5
+                     C 14.5 24.5 13 23 12.5 21.5
+                     C 11.5 20 11.5 18.5 13 17.5
+                     C 15.5 16 18 14 19.5 11.5
+                     C 18.5 10 19 9 20.5 8.5
+                     C 22 8 23.5 8.5 24.5 9.5
+                     C 25.5 8.5 27 8 28.5 9
+                     C 30 10 30 12.5 29.5 15
+                     C 31.5 19 32.5 24.5 31.5 34.5 Z" />
+
             {/* Eye */}
-            <circle cx="24" cy="11.5" r="1.3" fill={detail} stroke="none" />
-            {/* Mane Detail */}
-            <path d="M 18.5 12 C 20.5 14, 22.5 15.5, 24.5 16" stroke={detail} strokeWidth="1.2" fill="none" />
+            <circle cx="20" cy="14" r="1.3" fill={detail} stroke="none" />
+
+            {/* Nostril */}
+            <circle cx="14.2" cy="19.2" r="0.9" fill={detail} stroke="none" />
+
+            {/* Muzzle / Mouth Slit */}
+            <path d="M 12.5 20.5 C 14 21.2 16 21.2 17 20.5" stroke={detail} strokeWidth="1.2" fill="none" />
+
+            {/* Mane Waves */}
+            <path d="M 24 13.5 C 25.5 16.5 25.5 19.5 23.5 22.5" stroke={detail} strokeWidth="1.2" fill="none" />
+            <path d="M 26.5 19.5 C 28 22.5 28 25.5 26 28.5" stroke={detail} strokeWidth="1.2" fill="none" />
+
+            {/* Jawline Contour */}
+            <path d="M 19 20.5 C 20.5 18.5 21.5 16.5 22 14.5" stroke={detail} strokeWidth="1.2" fill="none" />
           </g>
         );
 
-      case 'b': // Master Bishop
+      case 'b': // Master Bishop (Chess.com / Staunton Neo Style)
         return (
-          <g fill={fill} stroke={stroke} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
+          <g fill={fill} stroke={stroke} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round">
             {/* Base */}
             <path d="M 10.5 40.5 L 34.5 40.5 L 33 37 L 12 37 Z" />
-            <path d="M 12.5 37 C 14 34.5, 31 34.5, 32.5 37 Z" />
-            {/* Waist Column */}
-            <path d="M 14 34.5 C 15.5 28, 29.5 28, 31 34.5 Z" />
-            <line x1="14" y1="23" x2="31" y2="23" stroke={detail} strokeWidth="1.3" />
+            <path d="M 12.5 37 C 14 34.5 31 34.5 32.5 37 Z" />
+            {/* Waist */}
+            <path d="M 14 34.5 C 15.5 27 29.5 27 31 34.5 Z" />
             {/* Mitre Head */}
-            <path d="M 22.5 9 C 26.5 9, 29 12.5, 29 17 C 29 22, 26 24, 22.5 24 C 19 24, 16 22, 16 17 C 16 12.5, 18.5 9, 22.5 9 Z" />
-            {/* Top Ball */}
-            <circle cx="22.5" cy="6.5" r="2" fill={fill} stroke={stroke} strokeWidth="1.6" />
-            {/* Slash */}
-            <path d="M 20 14 L 25 18" stroke={detail} strokeWidth="1.4" />
+            <path d="M 22.5 9 C 26.5 9 29.5 12.5 29.5 17 C 29.5 22 26.5 24.5 22.5 24.5 C 18.5 24.5 15.5 22 15.5 17 C 15.5 12.5 18.5 9 22.5 9 Z" />
+            {/* Top Orb */}
+            <circle cx="22.5" cy="6" r="2" fill={fill} stroke={stroke} strokeWidth="1.5" />
+            {/* Mitre Cut Slash */}
+            <path d="M 19 13.5 L 24.5 18.5" stroke={detail} strokeWidth="1.5" strokeLinecap="round" />
+            {/* Detail Line */}
+            <line x1="14" y1="23" x2="31" y2="23" stroke={detail} strokeWidth="1.3" />
           </g>
         );
 
-      case 'q': // Master Queen
+      case 'q': // Master Queen (Chess.com / Staunton Neo Style)
         return (
-          <g fill={fill} stroke={stroke} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
+          <g fill={fill} stroke={stroke} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round">
             {/* Base */}
             <path d="M 10.5 40.5 L 34.5 40.5 L 33 37 L 12 37 Z" />
-            <path d="M 12.5 37 C 14 34.5, 31 34.5, 32.5 37 Z" />
-            {/* Waist Column */}
-            <path d="M 13.5 34.5 C 15 28, 30 28, 31.5 34.5 Z" />
+            <path d="M 12.5 37 C 14 34.5 31 34.5 32.5 37 Z" />
+            {/* Waist */}
+            <path d="M 13.5 34.5 C 15 27 30 27 31.5 34.5 Z" />
+            {/* Crown Spikes Body */}
+            <path d="M 12 23 L 8.5 11.5 L 15.5 17.5 L 22.5 9.5 L 29.5 17.5 L 36.5 11.5 L 33 23 Z" />
+            {/* 5 Pearls on Crown Tips */}
+            <circle cx="8.5" cy="9.5" r="1.6" fill={fill} stroke={stroke} strokeWidth="1.3" />
+            <circle cx="15.5" cy="15.5" r="1.6" fill={fill} stroke={stroke} strokeWidth="1.3" />
+            <circle cx="22.5" cy="7.5" r="1.8" fill={fill} stroke={stroke} strokeWidth="1.3" />
+            <circle cx="29.5" cy="15.5" r="1.6" fill={fill} stroke={stroke} strokeWidth="1.3" />
+            <circle cx="36.5" cy="9.5" r="1.6" fill={fill} stroke={stroke} strokeWidth="1.3" />
+            {/* Detail Collar Line */}
             <line x1="13.5" y1="23" x2="31.5" y2="23" stroke={detail} strokeWidth="1.3" />
-            {/* Crown Spikes */}
-            <path d="M 12 23 L 8.5 11.5 L 15.5 17.5 L 22.5 10 L 29.5 17.5 L 36.5 11.5 L 33 23 Z" />
-            {/* Pearls on tips */}
-            <circle cx="8.5" cy="9.5" r="1.5" />
-            <circle cx="15.5" cy="15.5" r="1.5" />
-            <circle cx="22.5" cy="8" r="1.8" />
-            <circle cx="29.5" cy="15.5" r="1.5" />
-            <circle cx="36.5" cy="9.5" r="1.5" />
           </g>
         );
 
-      case 'k': // Master King
+      case 'k': // Master King (Chess.com / Staunton Neo Style)
         return (
-          <g fill={fill} stroke={stroke} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
-            {/* Cross */}
-            <path d="M 22.5 10.5 L 22.5 3.5 M 18.5 7 L 26.5 7" stroke={stroke} strokeWidth="2.2" strokeLinecap="round" />
-            <path d="M 22.5 10.5 L 22.5 3.5 M 18.5 7 L 26.5 7" stroke={fill} strokeWidth="1" strokeLinecap="round" />
+          <g fill={fill} stroke={stroke} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round">
+            {/* Royal Cross on Top */}
+            <line x1="22.5" y1="2.5" x2="22.5" y2="9.5" stroke={stroke} strokeWidth="2.2" strokeLinecap="round" />
+            <line x1="19" y1="5.5" x2="26" y2="5.5" stroke={stroke} strokeWidth="2.2" strokeLinecap="round" />
+            <line x1="22.5" y1="2.5" x2="22.5" y2="9.5" stroke={fill} strokeWidth="1.2" strokeLinecap="round" />
+            <line x1="19" y1="5.5" x2="26" y2="5.5" stroke={fill} strokeWidth="1.2" strokeLinecap="round" />
+
             {/* Base */}
             <path d="M 10.5 40.5 L 34.5 40.5 L 33 37 L 12 37 Z" />
-            <path d="M 12.5 37 C 14 34.5, 31 34.5, 32.5 37 Z" />
-            {/* Waist Column */}
-            <path d="M 13.5 34.5 C 15 28, 30 28, 31.5 34.5 Z" />
-            <line x1="13.5" y1="23" x2="31.5" y2="23" stroke={detail} strokeWidth="1.3" />
+            <path d="M 12.5 37 C 14 34.5 31 34.5 32.5 37 Z" />
+            {/* Waist */}
+            <path d="M 13.5 34.5 C 15 27 30 27 31.5 34.5 Z" />
             {/* Dome Crown */}
-            <path d="M 12.5 23 C 12.5 15.5, 16.5 11, 22.5 11 C 28.5 11, 32.5 15.5, 32.5 23 Z" />
+            <path d="M 12.5 23 C 12.5 15 16.5 9.5 22.5 9.5 C 28.5 9.5 32.5 15 32.5 23 Z" />
+            {/* Crown Inner Arches */}
+            <path d="M 17.5 23 C 17.5 17 19.5 13 22.5 13 C 25.5 13 27.5 17 27.5 23" stroke={detail} strokeWidth="1.2" fill="none" />
+            {/* Detail Line */}
+            <line x1="13.5" y1="23" x2="31.5" y2="23" stroke={detail} strokeWidth="1.3" />
           </g>
         );
 
@@ -138,3 +168,4 @@ export const ChessPieceSVG: React.FC<ChessPieceSVGProps> = ({ type, color, class
     </svg>
   );
 };
+
