@@ -1,15 +1,13 @@
 import { create } from 'zustand';
 import { Chess, Square } from 'chess.js';
 import { io, Socket } from 'socket.io-client';
-import { GameMode, PlayerColor, GameStatus, MoveLog, Reaction } from '../types';
+import { GameMode, PlayerColor, GameStatus, MoveLog } from '../types';
 import { sound } from '../utils/sound';
 import confetti from 'canvas-confetti';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const DEFAULT_TIME = 600; // 10 minutes
-const MAX_REACTIONS = 10;
-const REACTION_TTL_MS = 4000;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -70,9 +68,6 @@ interface ChessStore {
   blackTime: number;
   isTimerRunning: boolean;
 
-  // Reactions
-  reactions: Reaction[];
-
   // Pawn promotion
   pendingPromotion: { from: Square; to: Square } | null;
 
@@ -83,13 +78,11 @@ interface ChessStore {
   makeMove: (from: Square, to: Square, promotion?: string) => boolean;
   setPendingPromotion: (promo: { from: Square; to: Square } | null) => void;
   toggleSound: () => void;
-  sendReaction: (emoji: string) => void;
   setGameMode: (mode: GameMode) => void;
   requestRematch: () => void;
   resignGame: () => void;
   updateClocks: () => void;
   resetGame: () => void;
-  expireReactions: () => void;
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -120,7 +113,6 @@ export const useChessStore = create<ChessStore>((set, get) => ({
   blackTime: DEFAULT_TIME,
   isTimerRunning: false,
 
-  reactions: [],
   pendingPromotion: null,
 
   // ── initGame ────────────────────────────────────────────────────────────────
@@ -150,7 +142,6 @@ export const useChessStore = create<ChessStore>((set, get) => ({
       whiteTime: DEFAULT_TIME,
       blackTime: DEFAULT_TIME,
       isOpponentConnected: false,
-      reactions: [] as Reaction[],
     };
 
     // pass-and-play — no socket needed
@@ -221,13 +212,6 @@ export const useChessStore = create<ChessStore>((set, get) => ({
       } else {
         sound.playMoveSound();
       }
-    });
-
-    socket.on('reaction-received', (reaction: Reaction) => {
-      set((state) => ({
-        reactions: [...state.reactions.slice(-MAX_REACTIONS), { ...reaction, createdAt: Date.now() }],
-      }));
-      sound.playReactionSound();
     });
 
     socket.on('rematch-started', () => {
@@ -373,30 +357,6 @@ export const useChessStore = create<ChessStore>((set, get) => ({
     set({ isSoundMuted: isMuted });
   },
 
-  // ── sendReaction ─────────────────────────────────────────────────────────────
-  sendReaction: (emoji) => {
-    const { socket, roomId, myColor } = get();
-    const newReaction: Reaction = {
-      id: crypto.randomUUID(),
-      emoji,
-      senderColor: myColor,
-      createdAt: Date.now(),
-    };
-    set((state) => ({
-      reactions: [...state.reactions.slice(-MAX_REACTIONS), newReaction],
-    }));
-    sound.playReactionSound();
-    socket?.emit('send-reaction', { roomId, emoji, senderColor: myColor });
-  },
-
-  // ── expireReactions ──────────────────────────────────────────────────────────
-  expireReactions: () => {
-    const cutoff = Date.now() - REACTION_TTL_MS;
-    set((state) => ({
-      reactions: state.reactions.filter((r) => r.createdAt > cutoff),
-    }));
-  },
-
   // ── setGameMode ──────────────────────────────────────────────────────────────
   setGameMode: (mode) => get().initGame(mode),
 
@@ -462,3 +422,4 @@ export const useChessStore = create<ChessStore>((set, get) => ({
     });
   },
 }));
+

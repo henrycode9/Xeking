@@ -7,12 +7,9 @@ import { GameControlsPanel } from './components/GameControlsPanel';
 import { QRCodeModal } from './components/QRCodeModal';
 import { GameOverModal } from './components/GameOverModal';
 import { MatchStartOverlay } from './components/MatchStartOverlay';
-import { FloatingReactionsOverlay } from './components/FloatingReactionsOverlay';
 
 export default function App() {
-  const initGame        = useChessStore((s) => s.initGame);
-  const reactions       = useChessStore((s) => s.reactions);
-  const expireReactions = useChessStore((s) => s.expireReactions);
+  const initGame = useChessStore((s) => s.initGame);
 
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
 
@@ -24,12 +21,6 @@ export default function App() {
     initGame('multiplayer', urlRoomId ?? undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (reactions.length === 0) return;
-    const id = setInterval(expireReactions, 1000);
-    return () => clearInterval(id);
-  }, [reactions.length, expireReactions]);
 
   return (
     <div className="h-[100dvh] w-screen max-w-screen overflow-hidden bg-[#f4f4f5] text-[#09090b] flex flex-col p-2 sm:p-3.5 antialiased select-none">
@@ -44,10 +35,6 @@ export default function App() {
 
           {/* Board Column */}
           <div className="lg:col-span-8 w-full flex flex-col items-center justify-center relative shrink-0 min-h-0 overflow-hidden">
-
-            {/* Rich Physics-Animated Reaction Overlay */}
-            <FloatingReactionsOverlay />
-
             {/* Board Viewport Wrapper */}
             <div className="w-full flex-1 flex items-center justify-center min-h-0 py-0.5 max-h-full">
               <ChessBoard2D />
@@ -68,3 +55,4 @@ export default function App() {
     </div>
   );
 }
+

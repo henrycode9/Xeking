@@ -196,31 +196,7 @@ class SoundEngine {
       } catch (e) {}
     });
   }
-
-  playReactionSound() {
-    if (this.muted) return;
-    requestAnimationFrame(() => {
-      const ctx = this.getContext();
-      if (!ctx) return;
-      try {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(400, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + 0.08);
-
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.09);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start();
-        osc.stop(ctx.currentTime + 0.1);
-      } catch (e) {}
-    });
-  }
 }
 
 export const sound = new SoundEngine();
+

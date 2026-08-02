@@ -21,10 +21,3 @@ export interface PlayerInfo {
   connected: boolean;
 }
 
-export interface Reaction {
-  id: string; // crypto.randomUUID()
-  emoji: string;
-  senderColor: PlayerColor;
-  /** Unix ms – used for auto-expiry */
-  createdAt: number;
-}

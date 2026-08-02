@@ -46,7 +46,6 @@ interface MoveRecord {
 // Socket.IO event payloads
 interface JoinRoomPayload  { roomId: string; playerName?: string }
 interface MakeMovePayload  { roomId: string; from: string; to: string; promotion?: string }
-interface ReactionPayload  { roomId: string; emoji: string; senderColor: Color }
 interface RematchPayload   { roomId: string }
 interface ResignPayload    { roomId: string; resigningColor: Color }
 interface GameOverPayload  { roomId: string; status: GameStatus; winner?: Color | 'draw' }
@@ -268,16 +267,6 @@ Fornece uma análise em PORTUGUÊS com a seguinte estrutura em formato JSON estr
         inCheck: chess.inCheck(),
         endStatus,
         winner,
-      });
-    });
-
-    // ── send-reaction (broadcast to opponent only, preventing duplicate local reaction) ──
-    socket.on("send-reaction", ({ roomId, emoji, senderColor }: ReactionPayload) => {
-      if (typeof emoji !== 'string' || emoji.length > 8) return;
-      socket.to(roomId).emit("reaction-received", {
-        emoji,
-        senderColor,
-        id: crypto.randomUUID(),
       });
     });
 

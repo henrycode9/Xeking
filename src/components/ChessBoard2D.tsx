@@ -205,7 +205,7 @@ export const ChessBoard2D: React.FC = () => {
   }, [selectSquare]);
 
   return (
-    <div className="w-full max-w-[min(96vw,calc(100dvh-170px))] sm:max-w-lg aspect-square mx-auto flex items-center justify-center relative select-none shrink-0">
+    <div className="w-full max-w-[min(92vw,calc(100dvh-140px))] aspect-square mx-auto flex items-center justify-center relative select-none shrink-0">
 
       {/* Pawn Promotion Overlay */}
       {pendingPromotion && (

@@ -24,33 +24,6 @@
   animation: appleFadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ── Rich Floating Reaction Physics Animation ───────────────────────────── */
-@keyframes floatReactionUp {
-  0% {
-    opacity: 0;
-    transform: translateY(40px) scale(0.4) rotate(-12deg);
-  }
-  15% {
-    opacity: 1;
-    transform: translateY(0px) scale(1.25) rotate(4deg);
-  }
-  30% {
-    transform: translateY(-30px) scale(1) rotate(-4deg);
-  }
-  75% {
-    opacity: 1;
-    transform: translateY(-130px) scale(0.95) rotate(6deg);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-180px) scale(0.7) rotate(-8deg);
-  }
-}
-
-.animate-reaction-float {
-  animation: floatReactionUp 2.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
 /* ── Black & White High-Monochrome Palette ───────────────────────────────── */
 * {
   -webkit-tap-highlight-color: transparent;
@@ -87,3 +60,4 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #71717a;
 }
+

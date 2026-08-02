@@ -4,17 +4,6 @@ import { RotateCcw, History, Flag } from 'lucide-react';
 import { ChessPieceSVG } from './ChessPieceSVG';
 import { PieceType } from '../types';
 
-const EMOJI_PICKER = [
-  { emoji: '👏', label: 'Respeito' },
-  { emoji: '🔥', label: 'Excelente' },
-  { emoji: '👑', label: 'Mestre' },
-  { emoji: '🤯', label: 'Incrível' },
-  { emoji: '🎯', label: 'Precisão' },
-  { emoji: '⚡', label: 'Relâmpago' },
-  { emoji: '💡', label: 'Genial' },
-  { emoji: '😭', label: 'Ouch!' },
-] as const;
-
 const PIECE_VALUES: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
 const INITIAL_COUNTS: Record<string, number> = { p: 8, r: 2, n: 2, b: 2, q: 1, k: 1 };
 
@@ -25,9 +14,8 @@ export const GameControlsPanel: React.FC = () => {
   const turn       = useChessStore((s) => s.turn);
   const gameStatus = useChessStore((s) => s.gameStatus);
   const gameMode   = useChessStore((s) => s.gameMode);
-  const sendReaction = useChessStore((s) => s.sendReaction);
-  const resetGame    = useChessStore((s) => s.resetGame);
-  const resignGame   = useChessStore((s) => s.resignGame);
+  const resetGame  = useChessStore((s) => s.resetGame);
+  const resignGame = useChessStore((s) => s.resignGame);
 
   const capturedData = useMemo(() => {
     const board = chess.board();
@@ -69,7 +57,7 @@ export const GameControlsPanel: React.FC = () => {
   const inCheck = chess.inCheck();
 
   return (
-    <div className="w-full h-full flex flex-col justify-between p-4 rounded-2xl bg-white border border-zinc-200/80 text-zinc-900 min-h-0 overflow-hidden space-y-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+    <div className="w-full h-full flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl bg-white border border-zinc-200/80 text-zinc-900 min-h-0 overflow-hidden space-y-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
 
       {/* Status Header */}
       <div className="flex items-center justify-between p-2.5 px-3.5 rounded-xl bg-zinc-100 border border-zinc-200 shrink-0">
@@ -146,22 +134,6 @@ export const GameControlsPanel: React.FC = () => {
         )}
       </div>
 
-      {/* Animated Professional Emoji Reaction Bar */}
-      <div className="p-2 rounded-xl bg-zinc-100/90 border border-zinc-200 shrink-0">
-        <div className="flex items-center justify-between gap-1">
-          {EMOJI_PICKER.map(({ emoji, label }) => (
-            <button
-              key={emoji}
-              onClick={() => sendReaction(emoji)}
-              title={label}
-              className="p-1 rounded-lg hover:bg-white text-lg sm:text-xl transition-all duration-150 transform hover:-translate-y-1 hover:scale-125 active:scale-95 cursor-pointer shadow-none hover:shadow-sm"
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Action Footer */}
       <div className="shrink-0 pt-0.5">
         {gameMode === 'multiplayer' && gameStatus === 'playing' ? (
@@ -185,3 +157,4 @@ export const GameControlsPanel: React.FC = () => {
     </div>
   );
 };
+
