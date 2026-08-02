@@ -4,7 +4,6 @@ import path from "path";
 import fs from "fs";
 import { Server, Socket } from "socket.io";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
 import { Chess } from "chess.js";
 import dotenv from "dotenv";
 
