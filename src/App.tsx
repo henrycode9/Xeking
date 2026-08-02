@@ -16,6 +16,13 @@ export default function App() {
   useChessClock();
 
   useEffect(() => {
+    // Preload piece images for instant zero-latency rendering on any network/device
+    const pieceCodes = ['wp', 'wn', 'wb', 'wr', 'wq', 'wk', 'bp', 'bn', 'bb', 'br', 'bq', 'bk'];
+    pieceCodes.forEach((code) => {
+      const img = new Image();
+      img.src = `/pieces/${code}.png`;
+    });
+
     const params    = new URLSearchParams(window.location.search);
     const urlRoomId = params.get('room');
     initGame('multiplayer', urlRoomId ?? undefined);
