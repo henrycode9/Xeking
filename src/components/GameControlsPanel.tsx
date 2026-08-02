@@ -106,14 +106,10 @@ export const GameControlsPanel: React.FC = () => {
       <div className="flex-1 min-h-0 overflow-y-auto p-3 rounded-xl bg-zinc-50 border border-zinc-200 space-y-1 font-mono text-xs">
         <div className="flex items-center gap-1.5 text-zinc-600 font-sans text-xs font-bold pb-2 border-b border-zinc-200 sticky top-0 bg-zinc-50 z-10">
           <History className="w-3.5 h-3.5 text-zinc-700" />
-          <span>Histórico de Lances</span>
+          <span>Histórico</span>
         </div>
 
-        {history.length === 0 ? (
-          <p className="text-xs text-zinc-400 italic pt-4 text-center">
-            Aguardando primeira jogada...
-          </p>
-        ) : (
+        {history.length > 0 && (
           <div className="grid grid-cols-2 gap-x-3 gap-y-1 pt-1.5">
             {Array.from({ length: Math.ceil(history.length / 2) }).map((_, idx) => {
               const whiteMove = history[idx * 2];

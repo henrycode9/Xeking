@@ -1,6 +1,6 @@
 import React from 'react';
 import { useChessStore } from '../store/useChessStore';
-import { Volume2, VolumeX, QrCode, Crown } from 'lucide-react';
+import { QrCode, Crown } from 'lucide-react';
 
 interface HeaderUIProps {
   onOpenQRModal: () => void;
@@ -13,13 +13,11 @@ const formatTime = (seconds: number): string => {
 };
 
 export const HeaderUI: React.FC<HeaderUIProps> = ({ onOpenQRModal }) => {
-  const myColor      = useChessStore((s) => s.myColor);
-  const turn         = useChessStore((s) => s.turn);
-  const isSoundMuted = useChessStore((s) => s.isSoundMuted);
-  const toggleSound  = useChessStore((s) => s.toggleSound);
-  const whiteTime    = useChessStore((s) => s.whiteTime);
-  const blackTime    = useChessStore((s) => s.blackTime);
-  const gameStatus   = useChessStore((s) => s.gameStatus);
+  const myColor    = useChessStore((s) => s.myColor);
+  const turn       = useChessStore((s) => s.turn);
+  const whiteTime  = useChessStore((s) => s.whiteTime);
+  const blackTime  = useChessStore((s) => s.blackTime);
+  const gameStatus = useChessStore((s) => s.gameStatus);
 
   return (
     <header className="w-full max-w-7xl mx-auto py-0.5 shrink-0 space-y-1.5 sm:space-y-2">
@@ -45,17 +43,6 @@ export const HeaderUI: React.FC<HeaderUIProps> = ({ onOpenQRModal }) => {
           >
             <QrCode className="w-4 h-4" />
             <span>Convidar Amigo</span>
-          </button>
-
-          {/* Sound Toggle */}
-          <button
-            onClick={toggleSound}
-            className="p-1.5 sm:p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-all cursor-pointer active:scale-95 shrink-0"
-            title={isSoundMuted ? 'Ativar som' : 'Desativar som'}
-          >
-            {isSoundMuted
-              ? <VolumeX className="w-4 h-4 text-zinc-400" />
-              : <Volume2 className="w-4 h-4" />}
           </button>
         </div>
       </div>

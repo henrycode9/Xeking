@@ -95,24 +95,24 @@ const SquareTile = React.memo<SquareTileProps>(({
         </span>
       )}
 
-      {/* High-Contrast Vivid Legal Move Indicators (Satisfying Emerald Accent) */}
+      {/* Minimal Elegant Legal Move Indicators */}
       {isLegalMove && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
           {piece ? (
-            <div className="w-full h-full border-[4px] sm:border-[5px] border-emerald-500/80 rounded-full animate-pulse" />
+            <div className="w-full h-full border-[3.5px] border-emerald-500/70 rounded-full" />
           ) : (
-            <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-500/80 border border-white shadow-sm" />
+            <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/75 shadow-xs" />
           )}
         </div>
       )}
 
-      {/* Chess piece with high legibility */}
+      {/* Chess piece with smooth fluid transition */}
       {piece && (
         <div
           draggable={piece.color === turn}
           onDragStart={(e) => onDragStart(e, square)}
-          className={`w-full h-full p-0.5 sm:p-1.5 flex items-center justify-center z-10 ${
-            isSelected ? 'scale-110 -translate-y-1' : ''
+          className={`w-full h-full p-0.5 sm:p-1.5 flex items-center justify-center z-10 transition-transform duration-150 ease-out ${
+            isSelected ? 'scale-105 -translate-y-0.5' : ''
           } ${piece.color === turn ? 'cursor-grab active:cursor-grabbing' : ''}`}
         >
           <ChessPieceSVG type={piece.type as PieceType} color={piece.color as PlayerColor} />
