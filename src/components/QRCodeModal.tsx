@@ -65,7 +65,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose }) => 
           <QRCodeSVG
             value={joinUrl}
             size={160}
-            level="H"
+            level="M"
             includeMargin={true}
             fgColor="#09090b"
           />
