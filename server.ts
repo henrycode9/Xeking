@@ -119,52 +119,7 @@ async function startServer() {
     res.json({ status: "ok", activeRooms: rooms.size });
   });
 
-  // ── REST: Gemini AI Coach ───────────────────────────────────────────────────
-  app.post("/api/ai-hint", async (req, res) => {
-    try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
-        res.status(500).json({ error: "GEMINI_API_KEY não configurada no servidor." });
-        return;
-      }
 
-      const { fen, turn, history, difficulty } = req.body as {
-        fen: string;
-        turn: Color;
-        history: MoveRecord[];
-        difficulty?: string;
-      };
-
-      const ai = new GoogleGenAI({ apiKey });
-
-      const prompt = `És um Grande Mestre de Xadrez e treinador tático.
-Analisa a seguinte posição no formato FEN: "${fen}".
-É a vez das ${turn === 'w' ? 'Brancas' : 'Pretas'}.
-Histórico de jogadas recentes: ${JSON.stringify(history?.slice(-6) ?? [])}.
-Nível do jogador: ${difficulty ?? 'intermédio'}.
-
-Fornece uma análise em PORTUGUÊS com a seguinte estrutura em formato JSON estrito:
-{
-  "bestMove": "Melhor jogada em notação SAN (ex: Nf3, e4, Qh5)",
-  "explanation": "Explicação tática concisa de 2 frases sobre a melhor jogada",
-  "threat": "O principal perigo ou oportunidade na posição atual",
-  "evaluation": "Avaliação geral da posição (ex: 'Igualado', 'Vantagem Brancas (+1.5)', 'Ataque perigoso')"
-}`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: { responseMimeType: "application/json" },
-      });
-
-      const analysis = JSON.parse(response.text ?? "{}");
-      res.json(analysis);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Erro ao consultar o Mestre AI.";
-      console.error("[ai-hint]", message);
-      res.status(500).json({ error: message });
-    }
-  });
 
   // ── Socket.IO ───────────────────────────────────────────────────────────────
   io.on("connection", (socket: Socket) => {
