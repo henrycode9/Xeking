@@ -1,20 +1,22 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Xeking • Xadrez Online Multiplayer
 
-# Run and deploy your AI Studio app
+Xadrez online em tempo real ultra-leve, responsivo e minimalista com peças oficiais do Chess.com e convite instantâneo via QR Code.
 
-This contains everything you need to run your app locally.
+## 🚀 Como Executar
 
-View your app in AI Studio: https://ai.studio/apps/0c69330e-4c61-468f-902c-52d46cc21b81
+1. **Instalar dependências:**
+   ```bash
+   npm install
+   ```
 
-## Run Locally
+2. **Iniciar em desenvolvimento:**
+   ```bash
+   npm run dev
+   ```
 
-**Prerequisites:**  Node.js
+3. **Compilar para produção:**
+   ```bash
+   npm run build
+   npm start
+   ```
 
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
